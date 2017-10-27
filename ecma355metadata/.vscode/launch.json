@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "dump_header example",
+            "program": "${workspaceRoot}/target/debug/examples/dump_header",
+            "args": ["/Users/anurse/.dotnet/shared/Microsoft.NETCore.App/2.0.0/netstandard.dll"],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "cargo build examples"
+        }
+    ]
+}
