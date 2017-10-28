@@ -28,7 +28,6 @@ impl SectionHeader {
             None => 8
         };
         let name = String::from_utf8_lossy(&name_bytes[0..end]).into_owned();
-        println!("Bytes: {:?}, Name: {}", &name_bytes, name);
 
         Ok(SectionHeader {
             name: name,
