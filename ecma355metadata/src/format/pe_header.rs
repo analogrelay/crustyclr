@@ -1,3 +1,4 @@
+
 use std::io::Read;
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -7,35 +8,38 @@ use error::Error;
 #[repr(C)]
 #[derive(Debug)]
 pub struct PeHeader {
-    machine: u16,
-    number_of_sections: u16,
-    timestamp: u32,
-    symbol_table_addr: u32,
-    symbol_count: u32,
-    optional_header_size: u16,
-    characteristics: u16,
+    pub magic: u16,
+    pub major_linker_version: u8,
+    pub minor_linker_version: u8,
+    pub code_size: u32,
+    pub initialized_data_size: u32,
+    pub uninitialized_data_size: u32,
+    pub entry_point_rva: u32,
+    pub code_base: u32,
+    pub data_base: u32,
 }
 
+const PE_MAGIC: u16 = 0x010B;
+const PE_PLUS_MAGIC: u16 = 0x020B;
+
 impl PeHeader {
-    pub const SIZE: usize = 20;
-
     pub fn read<A: Read>(buf: &mut A) -> Result<PeHeader, Error> {
-        let machine = buf.read_u16::<LittleEndian>()?;
-        let number_of_sections = buf.read_u16::<LittleEndian>()?;
-        let timestamp = buf.read_u32::<LittleEndian>()?;
-        let symbol_table_addr = buf.read_u32::<LittleEndian>()?;
-        let symbol_count = buf.read_u32::<LittleEndian>()?;
-        let optional_header_size = buf.read_u16::<LittleEndian>()?;
-        let characteristics = buf.read_u16::<LittleEndian>()?;
-
-        Ok(PeHeader {
-            machine: machine,
-            number_of_sections: number_of_sections,
-            timestamp: timestamp,
-            symbol_table_addr: symbol_table_addr,
-            symbol_count: symbol_count,
-            optional_header_size: optional_header_size,
-            characteristics: characteristics,
-        })
+        // Check the magic number
+        let magic = buf.read_u16::<LittleEndian>()?;
+        if magic != PE_MAGIC && magic != PE_PLUS_MAGIC {
+            Err(Error::InvalidSignature)
+        } else {
+            Ok(PeHeader {
+                magic: magic,
+                major_linker_version: buf.read_u8()?,
+                minor_linker_version: buf.read_u8()?,
+                code_size: buf.read_u32::<LittleEndian>()?,
+                initialized_data_size: buf.read_u32::<LittleEndian>()?,
+                uninitialized_data_size: buf.read_u32::<LittleEndian>()?,
+                entry_point_rva: buf.read_u32::<LittleEndian>()?,
+                code_base: buf.read_u32::<LittleEndian>()?,
+                data_base: buf.read_u32::<LittleEndian>()?,
+            })
+        }
     }
 }
