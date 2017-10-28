@@ -2,13 +2,14 @@ use std::io::{Read, Seek, SeekFrom};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use format::{CoffHeader, PeHeader};
+use format::{CoffHeader, PeHeader, SectionHeader};
 
 use error::Error;
 
 pub struct PortableExecutable {
     coff_header: CoffHeader,
     pe_header: Option<PeHeader>,
+    section_headers: Vec<SectionHeader>,
 }
 
 const DOS_SIGNATURE: u16 = 0x5A4D;
@@ -41,10 +42,18 @@ impl PortableExecutable {
                 // Read the PE header next
                 let pe_header = PeHeader::read(r)?;
 
+                // Read section headers
+                let section_count = coff_header.number_of_sections as usize;
+                let mut section_headers = Vec::with_capacity(section_count);
+                for _ in 0..section_count {
+                    section_headers.push(SectionHeader::read(r)?);
+                }
+
                 // Success!
                 Ok(PortableExecutable {
                     coff_header: coff_header,
                     pe_header: Some(pe_header),
+                    section_headers: section_headers
                 })
             }
         }
@@ -56,5 +65,9 @@ impl PortableExecutable {
 
     pub fn pe_header(&self) -> Option<&PeHeader> {
         self.pe_header.as_ref()
+    }
+
+    pub fn section_headers(&self) -> &Vec<SectionHeader> {
+        &self.section_headers
     }
 }

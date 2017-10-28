@@ -4,7 +4,6 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use error::Error;
 
-#[repr(C)]
 #[derive(Debug)]
 pub struct CoffHeader {
     pub machine: u16,
@@ -17,6 +16,8 @@ pub struct CoffHeader {
 }
 
 impl CoffHeader {
+    pub const SIZE: usize = 20;
+
     pub fn read<A: Read>(buf: &mut A) -> Result<CoffHeader, Error> {
         Ok(CoffHeader {
             machine: buf.read_u16::<LittleEndian>()?,
