@@ -25,7 +25,7 @@ impl SectionHeader {
         buf.read(&mut name_bytes)?;
         let end = match name_bytes.iter().position(|x| *x == 0) {
             Some(x) => x,
-            None => 8
+            None => 8,
         };
         let name = String::from_utf8_lossy(&name_bytes[0..end]).into_owned();
 

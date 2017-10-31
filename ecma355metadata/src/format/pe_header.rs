@@ -3,7 +3,7 @@ use std::io::Read;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use error::Error;
-use format::{PeMagic,Subsystem,DirectoryEntry};
+use format::{DirectoryEntry, DirectoryType, PeMagic, Subsystem};
 
 #[derive(Debug)]
 pub struct PeHeader {
@@ -31,28 +31,13 @@ pub struct PeHeader {
     pub checksum: u32,
     pub subsystem: Subsystem,
     pub dll_flags: u16,
-    pub stack_reserve_size: u32,
-    pub stack_commit_size: u32,
-    pub heap_reserve_size: u32,
-    pub heap_commit_size: u32,
+    pub stack_reserve_size: u64,
+    pub stack_commit_size: u64,
+    pub heap_reserve_size: u64,
+    pub heap_commit_size: u64,
     pub loader_flags: u32,
     pub number_of_data_directories: u32,
-    pub export_table: DirectoryEntry,
-    pub import_table: DirectoryEntry,
-    pub resource_table: DirectoryEntry,
-    pub exception_table: DirectoryEntry,
-    pub certificate_table: DirectoryEntry,
-    pub base_relocation_table: DirectoryEntry,
-    pub debug_data: DirectoryEntry,
-    pub copyright_data: DirectoryEntry,
-    pub global_ptr_data: DirectoryEntry,
-    pub tls_table: DirectoryEntry,
-    pub load_config_table: DirectoryEntry,
-    pub bound_import: DirectoryEntry,
-    pub import_address_table: DirectoryEntry,
-    pub delay_import_descriptor: DirectoryEntry,
-    pub cli_header: DirectoryEntry,
-    pub reserved: DirectoryEntry,
+    directories: Vec<DirectoryEntry>,
 }
 
 impl PeHeader {
@@ -97,29 +82,51 @@ impl PeHeader {
                 checksum: buf.read_u32::<LittleEndian>()?,
                 subsystem: Subsystem::new(buf.read_u16::<LittleEndian>()?),
                 dll_flags: buf.read_u16::<LittleEndian>()?,
-                stack_reserve_size: buf.read_u32::<LittleEndian>()?,
-                stack_commit_size: buf.read_u32::<LittleEndian>()?,
-                heap_reserve_size: buf.read_u32::<LittleEndian>()?,
-                heap_commit_size: buf.read_u32::<LittleEndian>()?,
+                stack_reserve_size: if magic.is_pe32plus() {
+                    buf.read_u64::<LittleEndian>()?
+                } else {
+                    buf.read_u32::<LittleEndian>()? as u64
+                },
+                stack_commit_size: if magic.is_pe32plus() {
+                    buf.read_u64::<LittleEndian>()?
+                } else {
+                    buf.read_u32::<LittleEndian>()? as u64
+                },
+                heap_reserve_size: if magic.is_pe32plus() {
+                    buf.read_u64::<LittleEndian>()?
+                } else {
+                    buf.read_u32::<LittleEndian>()? as u64
+                },
+                heap_commit_size: if magic.is_pe32plus() {
+                    buf.read_u64::<LittleEndian>()?
+                } else {
+                    buf.read_u32::<LittleEndian>()? as u64
+                },
                 loader_flags: buf.read_u32::<LittleEndian>()?,
                 number_of_data_directories: buf.read_u32::<LittleEndian>()?,
-                export_table: DirectoryEntry::read(buf)?,
-                import_table: DirectoryEntry::read(buf)?,
-                resource_table: DirectoryEntry::read(buf)?,
-                exception_table: DirectoryEntry::read(buf)?,
-                certificate_table: DirectoryEntry::read(buf)?,
-                base_relocation_table: DirectoryEntry::read(buf)?,
-                debug_data: DirectoryEntry::read(buf)?,
-                copyright_data: DirectoryEntry::read(buf)?,
-                global_ptr_data: DirectoryEntry::read(buf)?,
-                tls_table: DirectoryEntry::read(buf)?,
-                load_config_table: DirectoryEntry::read(buf)?,
-                bound_import: DirectoryEntry::read(buf)?,
-                import_address_table: DirectoryEntry::read(buf)?,
-                delay_import_descriptor: DirectoryEntry::read(buf)?,
-                cli_header: DirectoryEntry::read(buf)?,
-                reserved: DirectoryEntry::read(buf)?,
+                directories: vec![
+                    DirectoryEntry::read(DirectoryType::ExportTable, buf)?,
+                    DirectoryEntry::read(DirectoryType::ImportTable, buf)?,
+                    DirectoryEntry::read(DirectoryType::ResourceTable, buf)?,
+                    DirectoryEntry::read(DirectoryType::ExceptionTable, buf)?,
+                    DirectoryEntry::read(DirectoryType::CertificateTable, buf)?,
+                    DirectoryEntry::read(DirectoryType::BaseRelocationTable, buf)?,
+                    DirectoryEntry::read(DirectoryType::DebugData, buf)?,
+                    DirectoryEntry::read(DirectoryType::CopyrightData, buf)?,
+                    DirectoryEntry::read(DirectoryType::GlobalPtrData, buf)?,
+                    DirectoryEntry::read(DirectoryType::TlsTable, buf)?,
+                    DirectoryEntry::read(DirectoryType::LoadConfigTable, buf)?,
+                    DirectoryEntry::read(DirectoryType::BoundImport, buf)?,
+                    DirectoryEntry::read(DirectoryType::ImportAddressTable, buf)?,
+                    DirectoryEntry::read(DirectoryType::DelayImportDescriptor, buf)?,
+                    DirectoryEntry::read(DirectoryType::CliHeader, buf)?,
+                    DirectoryEntry::read(DirectoryType::Reserved, buf)?,
+                ],
             })
         }
+    }
+
+    pub fn directories(&self) -> &Vec<DirectoryEntry> {
+        &self.directories
     }
 }

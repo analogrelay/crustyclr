@@ -1,10 +1,10 @@
 extern crate byteorder;
 
-mod portable_executable;
+mod pe_reader;
 mod error;
 
 /// Contains raw data structures from PE/CIL files.
 pub mod format;
 
-pub use portable_executable::PortableExecutable;
+pub use pe_reader::PeReader;
 pub use error::Error;
