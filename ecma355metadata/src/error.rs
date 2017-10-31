@@ -4,8 +4,14 @@ pub enum Error {
     /// Indicates that an I/O error occurred.
     IoError(::std::io::Error),
 
-    /// Indicates that the file has an invalid signature (MS-DOS Signature, PE Signature, etc.)
+    /// Indicates that the file has an invalid signature (MS-DOS Signature, PE Signature, etc.).
     InvalidSignature,
+
+    /// Indicates that the file is not a PE file, and thus has no PE header.
+    NotAPortableExecutable,
+
+    /// The requested PE data directory was not found.
+    DirectoryNotFound,
 }
 
 impl From<::std::io::Error> for Error {

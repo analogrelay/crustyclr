@@ -2,8 +2,8 @@ use std::io::{Read, Seek, SeekFrom};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use format::{CoffHeader, PeHeader, SectionHeader};
-use format::directories::DirectoryReader;
+use format::{CoffHeader, DirectoryType, PeHeader, SectionHeader};
+use format::directories::Directory;
 
 use error::Error;
 
@@ -35,30 +35,31 @@ impl<R: Read + Seek> PeReader<R> {
 
             // Read the PE signature
             let pe_sig = stream.read_u32::<LittleEndian>()?;
-            if pe_sig != PE_SIGNATURE {
-                Err(Error::InvalidSignature)
+
+            // Read the COFF header
+            let coff_header = CoffHeader::read(&mut stream)?;
+
+            // Read the PE header if there is one
+            let pe_header = if pe_sig != PE_SIGNATURE {
+                None
             } else {
-                // Read the COFF header
-                let coff_header = CoffHeader::read(&mut stream)?;
+                Some(PeHeader::read(&mut stream)?)
+            };
 
-                // Read the PE header next
-                let pe_header = PeHeader::read(&mut stream)?;
-
-                // Read section headers
-                let section_count = coff_header.number_of_sections as usize;
-                let mut section_headers = Vec::with_capacity(section_count);
-                for _ in 0..section_count {
-                    section_headers.push(SectionHeader::read(&mut stream)?);
-                }
-
-                // Success!
-                Ok(PeReader {
-                    coff_header: coff_header,
-                    pe_header: Some(pe_header),
-                    section_headers: section_headers,
-                    stream: stream,
-                })
+            // Read section headers
+            let section_count = coff_header.number_of_sections as usize;
+            let mut section_headers = Vec::with_capacity(section_count);
+            for _ in 0..section_count {
+                section_headers.push(SectionHeader::read(&mut stream)?);
             }
+
+            // Success!
+            Ok(PeReader {
+                coff_header: coff_header,
+                pe_header: pe_header,
+                section_headers: section_headers,
+                stream: stream,
+            })
         }
     }
 
@@ -72,5 +73,22 @@ impl<R: Read + Seek> PeReader<R> {
 
     pub fn section_headers(&self) -> &Vec<SectionHeader> {
         &self.section_headers
+    }
+
+    pub fn read_directory<D: Directory>(&mut self) -> Result<D, Error> {
+        let typ: DirectoryType = D::TYPE;
+
+        let pe_header = self.pe_header.ok_or(Error::NotAPortableExecutable)?;
+
+        // Find the directory entry
+        let dirent = pe_header
+            .directories()
+            .iter()
+            .find(|d| d.directory_type == typ)
+            .ok_or(Error::DirectoryNotFound)?;
+
+        // TODO: Get a Section Reader for the RVA and read the directory.
+
+        unimplemented!();
     }
 }

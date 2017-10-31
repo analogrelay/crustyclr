@@ -1,3 +1,3 @@
-mod directory_reader;
+mod directory;
 
-pub use self::directory_reader::DirectoryReader;
+pub use self::directory::Directory;
