@@ -12,6 +12,9 @@ pub enum Error {
 
     /// The requested PE data directory was not found.
     DirectoryNotFound,
+
+    /// The requested section was not found.
+    SectionNotFound,
 }
 
 impl From<::std::io::Error> for Error {

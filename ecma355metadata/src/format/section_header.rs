@@ -4,6 +4,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use error::Error;
 
+use format::SectionCharacteristics;
+
 pub struct SectionHeader {
     pub name: String,
     pub virtual_size: u32,
@@ -14,7 +16,7 @@ pub struct SectionHeader {
     pub pointer_to_linenumbers: u32,
     pub number_of_relocations: u16,
     pub number_of_linenumbers: u16,
-    pub characteristics: u32,
+    pub characteristics: SectionCharacteristics,
 }
 
 impl SectionHeader {
@@ -39,7 +41,11 @@ impl SectionHeader {
             pointer_to_linenumbers: buf.read_u32::<LittleEndian>()?,
             number_of_relocations: buf.read_u16::<LittleEndian>()?,
             number_of_linenumbers: buf.read_u16::<LittleEndian>()?,
-            characteristics: buf.read_u32::<LittleEndian>()?,
+            characteristics: SectionCharacteristics::from_bits_truncate(buf.read_u32::<LittleEndian>()?),
         })
+    }
+
+    pub fn contains_rva(&self, rva: u32) -> bool {
+        rva >= self.virtual_address && rva <= (self.virtual_address + self.virtual_size)
     }
 }

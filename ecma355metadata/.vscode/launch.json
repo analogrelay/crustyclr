@@ -7,9 +7,9 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "dump_header example",
-            "program": "${workspaceRoot}/target/debug/examples/dump_header",
-            "args": ["/Users/anurse/.dotnet/shared/Microsoft.NETCore.App/2.0.0/netstandard.dll"],
+            "name": "dump_section example",
+            "program": "${workspaceRoot}/target/debug/examples/dump_section",
+            "args": ["C:\\Users\\anurse\\.nuget\\packages\\system.buffers\\4.0.0\\lib\\netstandard1.1\\System.Buffers.dll", ".text"],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "cargo build examples"
         }

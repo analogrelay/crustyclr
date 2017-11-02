@@ -4,6 +4,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use error::Error;
 
+use format::FileCharacteristics;
+
 #[derive(Debug)]
 pub struct CoffHeader {
     pub machine: u16,
@@ -12,7 +14,7 @@ pub struct CoffHeader {
     pub symbol_table_addr: u32,
     pub symbol_count: u32,
     pub optional_header_size: u16,
-    pub characteristics: u16,
+    pub characteristics: FileCharacteristics,
 }
 
 impl CoffHeader {
@@ -26,7 +28,7 @@ impl CoffHeader {
             symbol_table_addr: buf.read_u32::<LittleEndian>()?,
             symbol_count: buf.read_u32::<LittleEndian>()?,
             optional_header_size: buf.read_u16::<LittleEndian>()?,
-            characteristics: buf.read_u16::<LittleEndian>()?,
+            characteristics: FileCharacteristics::from_bits_truncate(buf.read_u16::<LittleEndian>()?),
         })
     }
 }
