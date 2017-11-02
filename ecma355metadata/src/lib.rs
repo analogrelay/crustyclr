@@ -1,5 +1,8 @@
 extern crate byteorder;
 
+#[macro_use]
+extern crate bitflags;
+
 mod pe_reader;
 mod error;
 

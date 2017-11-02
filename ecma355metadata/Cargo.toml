@@ -5,3 +5,4 @@ authors = ["Andrew Stanton-Nurse <andrew@andrewnurse.net>"]
 
 [dependencies]
 byteorder = "1.1.0"
+bitflags = "1.0.0"

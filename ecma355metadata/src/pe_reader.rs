@@ -74,21 +74,4 @@ impl<R: Read + Seek> PeReader<R> {
     pub fn section_headers(&self) -> &Vec<SectionHeader> {
         &self.section_headers
     }
-
-    pub fn read_directory<D: Directory>(&mut self) -> Result<D, Error> {
-        let typ: DirectoryType = D::TYPE;
-
-        let pe_header = self.pe_header.ok_or(Error::NotAPortableExecutable)?;
-
-        // Find the directory entry
-        let dirent = pe_header
-            .directories()
-            .iter()
-            .find(|d| d.directory_type == typ)
-            .ok_or(Error::DirectoryNotFound)?;
-
-        // TODO: Get a Section Reader for the RVA and read the directory.
-
-        unimplemented!();
-    }
 }
