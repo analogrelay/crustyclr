@@ -7,9 +7,12 @@ mod error;
 mod utils;
 
 /// Contains CLI metadata structures
-// pub mod cli;
+pub mod cli;
 
 /// Contains PE structures
 pub mod pe;
 
 pub use error::Error;
+
+pub use pe::PeImage;
+pub use cli::MetadataReader;

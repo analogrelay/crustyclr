@@ -2,7 +2,8 @@ use std::io::{Read, Seek, SeekFrom};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use pe::{CoffHeader, PeHeader, SectionHeader, PeSection};
+use pe::{CoffHeader, DirectoryEntry, DirectoryType, PeHeader, PeSection, SectionHeader,
+         SectionReader};
 use error::Error;
 use utils;
 
@@ -68,7 +69,7 @@ impl PeImage {
             Ok(PeImage {
                 coff_header: coff_header,
                 pe_header: pe_header,
-                sections: sections
+                sections: sections,
             })
         }
     }
@@ -87,5 +88,25 @@ impl PeImage {
 
     pub fn get_section(&self, name: &str) -> Option<&PeSection> {
         self.sections.iter().find(|x| x.header().name == name)
+    }
+
+    pub fn get_directory(&self, directory_type: DirectoryType) -> Option<&DirectoryEntry> {
+        if let Some(pe_header) = self.pe_header() {
+            pe_header
+                .directories()
+                .iter()
+                .find(|d| d.directory_type == directory_type)
+        } else {
+            None
+        }
+    }
+
+    pub fn create_reader<'a>(&'a self, rva: u32) -> Option<SectionReader<'a>> {
+        self.sections.iter().find(|x| x.contains_rva(rva)).map(|s| {
+            let section_offset = rva - s.header().virtual_address;
+            let mut reader = s.create_reader();
+            reader.seek(SeekFrom::Start(section_offset as u64));
+            reader
+        })
     }
 }

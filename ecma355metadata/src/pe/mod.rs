@@ -17,5 +17,5 @@ pub use self::directory_entry::{DirectoryEntry, DirectoryType};
 pub use self::section_header::SectionHeader;
 pub use self::section_range::SectionRange;
 pub use self::pe_image::PeImage;
-pub use self::pe_section::PeSection;
-pub use self::characteristics::{FileCharacteristics,SectionCharacteristics};
+pub use self::pe_section::{PeSection, SectionReader};
+pub use self::characteristics::{FileCharacteristics, SectionCharacteristics};

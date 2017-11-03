@@ -41,12 +41,10 @@ impl SectionHeader {
             pointer_to_linenumbers: buf.read_u32::<LittleEndian>()?,
             number_of_relocations: buf.read_u16::<LittleEndian>()?,
             number_of_linenumbers: buf.read_u16::<LittleEndian>()?,
-            characteristics: SectionCharacteristics::from_bits_truncate(buf.read_u32::<LittleEndian>()?),
+            characteristics: SectionCharacteristics::from_bits_truncate(
+                buf.read_u32::<LittleEndian>()?,
+            ),
         })
-    }
-
-    pub fn contains_rva(&self, rva: u32) -> bool {
-        rva >= self.virtual_address && rva <= (self.virtual_address + self.virtual_size)
     }
 
     pub fn virtual_end(&self) -> u32 {

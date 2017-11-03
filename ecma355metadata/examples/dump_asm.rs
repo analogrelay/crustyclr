@@ -3,7 +3,7 @@ extern crate ecma355metadata;
 use std::env;
 use std::fs::File;
 
-use ecma355metadata::MetadataReader;
+use ecma355metadata::{MetadataReader, PeImage};
 
 pub fn main() {
     let args: Vec<_> = env::args().collect();
@@ -11,7 +11,7 @@ pub fn main() {
         println!("Usage: dump_asm <file>");
     } else {
         let mut file = File::open(&args[1]).unwrap();
-        let assembly = MetadataReader::new(&mut file).unwrap();
+        let assembly = MetadataReader::new(PeImage::read(&mut file).unwrap()).unwrap();
 
         println!("CLI Header");
         println!("  Size: {}", assembly.cli_header().header_size);
@@ -22,10 +22,16 @@ pub fn main() {
         );
         println!("  Metadata: {}", assembly.cli_header().metadata);
         println!("  Flags: {}", assembly.cli_header().flags);
-        println!("  Entrypoint Token: 0x{:08X}", assembly.cli_header().entry_point_token);
+        println!(
+            "  Entrypoint Token: 0x{:08X}",
+            assembly.cli_header().entry_point_token
+        );
         println!("  Resources: {}", assembly.cli_header().resources);
         println!("  Strong Name: {}", assembly.cli_header().strong_name);
-        println!("  Code Manager Table: {}", assembly.cli_header().code_manager_table);
+        println!(
+            "  Code Manager Table: {}",
+            assembly.cli_header().code_manager_table
+        );
         println!("  VTable Fixups: {}", assembly.cli_header().vtable_fixups);
         println!(
             "  Export Address Table Jumps: {}",
@@ -38,14 +44,24 @@ pub fn main() {
         println!();
 
         println!("Metadata Header:");
-        println!("  Version: {}.{} ({})", assembly.metadata_header().major_version, assembly.metadata_header().minor_version, assembly.metadata_header().version);
+        println!(
+            "  Version: {}.{} ({})",
+            assembly.metadata_header().major_version,
+            assembly.metadata_header().minor_version,
+            assembly.metadata_header().version
+        );
         println!("  Flags: 0x{:04X}", assembly.metadata_header().flags);
         println!("  Streams: {}", assembly.metadata_header().streams);
         println!();
 
         println!("Streams:");
         for stream_header in assembly.stream_headers() {
-            println!("  [0x{:08X} - 0x{:08X}] {}", stream_header.offset, stream_header.offset + stream_header.size, stream_header.name);
+            println!(
+                "  [0x{:08X} - 0x{:08X}] {}",
+                stream_header.offset,
+                stream_header.offset + stream_header.size,
+                stream_header.name
+            );
         }
     }
 }

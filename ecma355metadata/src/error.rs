@@ -30,13 +30,13 @@ impl From<::std::io::Error> for Error {
 }
 
 impl From<::std::string::FromUtf8Error> for Error {
-    fn from(e: ::std::string::FromUtf8Error) -> Error {
+    fn from(_: ::std::string::FromUtf8Error) -> Error {
         Error::InvalidStringData
     }
 }
 
 impl From<::std::string::FromUtf16Error> for Error {
-    fn from(e: ::std::string::FromUtf16Error) -> Error {
+    fn from(_: ::std::string::FromUtf16Error) -> Error {
         Error::InvalidStringData
     }
 }

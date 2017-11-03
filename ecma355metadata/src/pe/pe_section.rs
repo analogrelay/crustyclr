@@ -4,7 +4,7 @@ use pe::SectionHeader;
 
 pub struct SectionReader<'a> {
     section: &'a PeSection,
-    offset: usize
+    offset: usize,
 }
 
 pub struct PeSection {
@@ -16,10 +16,10 @@ impl PeSection {
     pub fn new(header: SectionHeader, data: Vec<u8>) -> PeSection {
         PeSection {
             header: header,
-            data: data
+            data: data,
         }
     }
-    
+
     pub fn header(&self) -> &SectionHeader {
         &self.header
     }
@@ -28,10 +28,14 @@ impl PeSection {
         self.data.as_slice()
     }
 
+    pub fn contains_rva(&self, rva: u32) -> bool {
+        rva >= self.header.virtual_address && rva <= self.header.virtual_end()
+    }
+
     pub fn create_reader<'a>(&'a self) -> SectionReader<'a> {
         SectionReader {
             section: self,
-            offset: 0
+            offset: 0,
         }
     }
 }
@@ -41,7 +45,9 @@ impl<'a> Seek for SectionReader<'a> {
         match pos {
             SeekFrom::Start(x) => self.offset = x as usize,
             SeekFrom::Current(x) => self.offset = (self.offset as i64 + x) as usize,
-            SeekFrom::End(x) => self.offset = (self.section.header.virtual_end() as i64 - x) as usize,
+            SeekFrom::End(x) => {
+                self.offset = (self.section.header.virtual_end() as i64 - x) as usize
+            }
         }
 
         Ok(self.offset as u64)
@@ -61,8 +67,7 @@ impl<'a> Read for SectionReader<'a> {
         // If there isn't any data to be read, return EOF
         if read_size == 0 {
             Ok(0)
-        }
-        else {
+        } else {
             // Figure out how much real data there is to read
             let section_data = self.section.raw_data();
             let real_data_remaining = section_data.len() - self.offset;
