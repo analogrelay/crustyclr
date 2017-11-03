@@ -6,7 +6,7 @@ use std::ascii::AsciiExt;
 
 use ecma355metadata::PeReader;
 
-const STRIDE: usize = 32; 
+const STRIDE: usize = 32;
 
 fn is_printable(val: u8) -> bool {
     val >= b' ' && val <= b'~'
@@ -33,9 +33,11 @@ pub fn main() {
         let filename = &args[1];
         let section_name = &args[2];
         let mut file = File::open(filename).unwrap();
-        let mut pe = PeReader::read(&mut file).unwrap();
+        let mut pe = PeReader::new(&mut file).unwrap();
 
-        let section = pe.get_section(section_name).unwrap();
+        // Seek to the section
+        let section_data = Vec::new();
+        pe.read_section(section_name, &mut section_data).unwrap();
 
         println!("Section: {}", section_name);
         println!();
@@ -54,11 +56,7 @@ pub fn main() {
             print!(" | ");
             for index in 0..STRIDE {
                 let val = section[offset + index];
-                let ch = if is_printable(val) {
-                   val.into() 
-                } else {
-                    '.'
-                };
+                let ch = if is_printable(val) { val.into() } else { '.' };
                 print!("{}", ch);
             }
             println!();

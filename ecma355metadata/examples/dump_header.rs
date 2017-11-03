@@ -4,7 +4,7 @@ use std::env;
 use std::fs::File;
 
 use ecma355metadata::PeReader;
-use ecma355metadata::format::{CliHeader,DirectoryType};
+use ecma355metadata::format::{CliHeader, DirectoryType};
 
 pub fn main() {
     let args: Vec<_> = env::args().collect();
@@ -12,7 +12,7 @@ pub fn main() {
         println!("Usage: dump_header <file>");
     } else {
         let mut file = File::open(&args[1]).unwrap();
-        let mut pe = PeReader::read(&mut file).unwrap();
+        let mut pe = PeReader::new(&mut file).unwrap();
 
         {
             let coff_header = pe.coff_header();
@@ -108,7 +108,11 @@ pub fn main() {
             let cli_header = CliHeader::read(&mut r).unwrap();
             println!("CLI Header");
             println!("  Size: {}", cli_header.header_size);
-            println!("  Runtime Version: {}.{}", cli_header.major_runtime_version, cli_header.minor_runtime_version);
+            println!(
+                "  Runtime Version: {}.{}",
+                cli_header.major_runtime_version,
+                cli_header.minor_runtime_version
+            );
             println!("  Metadata: {}", cli_header.metadata);
             println!("  Flags: 0x{:04X}", cli_header.flags);
             println!("  Entrypoint Token: 0x{:08X}", cli_header.entry_point_token);
@@ -116,8 +120,14 @@ pub fn main() {
             println!("  Strong Name: {}", cli_header.strong_name);
             println!("  Code Manager Table: {}", cli_header.code_manager_table);
             println!("  VTable Fixups: {}", cli_header.vtable_fixups);
-            println!("  Export Address Table Jumps: {}", cli_header.export_address_table_jumps);
-            println!("  Managed/Native Header: {}", cli_header.managed_native_header);
+            println!(
+                "  Export Address Table Jumps: {}",
+                cli_header.export_address_table_jumps
+            );
+            println!(
+                "  Managed/Native Header: {}",
+                cli_header.managed_native_header
+            );
             println!();
         }
 
