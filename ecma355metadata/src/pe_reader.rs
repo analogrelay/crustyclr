@@ -154,20 +154,20 @@ impl<R: Read + Seek> Read for PeReader<R> {
         let current_section = self.current_section()
             .ok_or(io::Error::new(io::ErrorKind::NotFound, "Not currently in a section"))?;
 
-        let section_offset = (self.rva_position - current_section.virtual_address) as usize;
-        let remaining_in_section = (current_section.virtual_size - section_offset) as usize;
+        let section_offset = self.rva_position as usize - current_section.virtual_address as usize;
+        let remaining_in_section = current_section.virtual_size as usize - section_offset;
 
         // Determine the maximum amount of data that can be read in the section
         let read_size = if buf.len() > remaining_in_section {
             remaining_in_section
         } else {
-            buf.len();
+            buf.len()
         };
 
         if read_size == 0 {
             Err(io::Error::new(io::ErrorKind::UnexpectedEof, "Reached end of section, seek to a new section to continue reading"))
         } else {
-            let remaining_data_in_section = current_section.size_of_raw_data - section_offset;
+            let remaining_data_in_section = current_section.size_of_raw_data as usize - section_offset;
 
             // Now, constrain by the size of data to see if we need to fill with zeros
             let physical_read_size = if read_size > remaining_data_in_section {
