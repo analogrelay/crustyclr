@@ -103,9 +103,11 @@ pub fn main() {
         }
 
         if let Some(cli_header_rva) = cli_header_rva {
-            // Read the section
-            let mut r = pe.create_reader(cli_header_rva).unwrap();
-            let cli_header = CliHeader::read(&mut r).unwrap();
+            // Seek to the Cli header
+            pe.seek_rva(cli_header_rva).unwrap();
+
+            // Read the header
+            let cli_header = CliHeader::read(&mut pe).unwrap();
             println!("CLI Header");
             println!("  Size: {}", cli_header.header_size);
             println!(

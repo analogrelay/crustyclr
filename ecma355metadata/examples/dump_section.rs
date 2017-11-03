@@ -36,8 +36,8 @@ pub fn main() {
         let mut pe = PeReader::new(&mut file).unwrap();
 
         // Seek to the section
-        let section_data = Vec::new();
-        pe.read_section(section_name, &mut section_data).unwrap();
+        let mut section = Vec::new();
+        pe.read_section(section_name, &mut section).unwrap();
 
         println!("Section: {}", section_name);
         println!();

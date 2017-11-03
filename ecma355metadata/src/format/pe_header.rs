@@ -125,4 +125,8 @@ impl PeHeader {
             })
         }
     }
+
+    pub fn directories(&self) -> &Vec<DirectoryEntry> {
+        &self.directories
+    }
 }

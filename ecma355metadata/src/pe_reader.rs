@@ -1,4 +1,4 @@
-use std::io::{Cursor, Read, Seek, SeekFrom};
+use std::io::{Read, Seek, SeekFrom};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -62,7 +62,6 @@ impl<R: Read + Seek> PeReader<R> {
                 pe_header: pe_header,
                 section_headers: section_headers,
                 rva_position: 0,
-                current_section_index: None,
                 stream: stream,
             })
         }
@@ -84,11 +83,10 @@ impl<R: Read + Seek> PeReader<R> {
         let section = self.section_headers
             .iter()
             .find(|x| x.name == name)
-            .as_ref()
             .ok_or(Error::SectionNotFound)?;
 
         // Seek the file to the start of raw data for this section
-        self.stream.seek(SeekFrom::Start(section.pointer_to_raw_data))?;
+        self.stream.seek(SeekFrom::Start(section.pointer_to_raw_data as u64))?;
         
         // Set our rva_position
         self.rva_position = section.virtual_address;
@@ -101,15 +99,14 @@ impl<R: Read + Seek> PeReader<R> {
         let section = self.section_headers
             .iter()
             .find(|x| x.contains_rva(rva))
-            .as_ref()
             .ok_or(Error::SectionNotFound)?;
 
         // Calculate offset within the section
         let section_offset = rva - section.virtual_address;
 
         // Clamp it to the size_of_real_data value to avoid seeking past EOF
-        let section_offset = if section_offset > section.size_of_real_data {
-            section.size_of_real_data
+        let section_offset = if section_offset > section.size_of_raw_data {
+            section.size_of_raw_data
         } else {
             section_offset
         };
@@ -118,7 +115,7 @@ impl<R: Read + Seek> PeReader<R> {
         let file_offset = section.pointer_to_raw_data + section_offset;
 
         // Seek the file the calculated offset and set rva_position
-        self.stream.seek(SeekFrom::Start(file_offset))?;
+        self.stream.seek(SeekFrom::Start(file_offset as u64))?;
         self.rva_position = rva;
 
         // Success!
@@ -128,7 +125,7 @@ impl<R: Read + Seek> PeReader<R> {
     pub fn read_section(&mut self, name: &str, buf: &mut Vec<u8>) -> Result<(), Error> {
         self.seek_section(name)?;
 
-        let read_size = self.current_section().ok_or(Error::SectionNotFound)?.virtual_size;
+        let read_size = self.current_section().ok_or(Error::SectionNotFound)?.virtual_size as usize;
 
         // Safety: This reserves the exact amount of space we need, then sets the length
         // to it. The vector now includes uninitialized space, but we're about to fill it
@@ -137,25 +134,28 @@ impl<R: Read + Seek> PeReader<R> {
             buf.set_len(read_size);
         }
 
-        self.read_exact(&mut buf[0..read_size])?
+        self.read_exact(&mut buf[0..read_size])?;
         Ok(())
     }
 
     fn current_section(&self) -> Option<&SectionHeader> {
-        self.section_headers.iter().find(|s| s.contains_rva(self.rva_position)).as_ref()
+        self.section_headers.iter().find(|s| s.contains_rva(self.rva_position))
     }
 }
 
 impl<R: Read + Seek> Read for PeReader<R> {
-    use std::io;
+    fn read(&mut self, buf: &mut [u8]) -> ::std::io::Result<usize> {
+        use std::io;
 
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         // Get the current section
-        let current_section = self.current_section()
-            .ok_or(io::Error::new(io::ErrorKind::NotFound, "Not currently in a section"))?;
+        let (virtual_address, virtual_size, size_of_raw_data) = {
+            let s = self.current_section()
+                .ok_or(io::Error::new(io::ErrorKind::NotFound, "Not currently in a section"))?;
+            (s.virtual_address, s.virtual_size, s.size_of_raw_data)
+        };
 
-        let section_offset = self.rva_position as usize - current_section.virtual_address as usize;
-        let remaining_in_section = current_section.virtual_size as usize - section_offset;
+        let section_offset = self.rva_position as usize - virtual_address as usize;
+        let remaining_in_section = virtual_size as usize - section_offset;
 
         // Determine the maximum amount of data that can be read in the section
         let read_size = if buf.len() > remaining_in_section {
@@ -167,7 +167,7 @@ impl<R: Read + Seek> Read for PeReader<R> {
         if read_size == 0 {
             Err(io::Error::new(io::ErrorKind::UnexpectedEof, "Reached end of section, seek to a new section to continue reading"))
         } else {
-            let remaining_data_in_section = current_section.size_of_raw_data as usize - section_offset;
+            let remaining_data_in_section = size_of_raw_data as usize - section_offset;
 
             // Now, constrain by the size of data to see if we need to fill with zeros
             let physical_read_size = if read_size > remaining_data_in_section {
