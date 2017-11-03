@@ -14,6 +14,7 @@ pub struct PeReader<R: Read + Seek> {
     pe_header: Option<PeHeader>,
     section_headers: Vec<SectionHeader>,
     rva_position: u32,
+    end_rva: u32,
     stream: R,
 }
 
@@ -56,12 +57,19 @@ impl<R: Read + Seek> PeReader<R> {
                 section_headers.push(SectionHeader::read(&mut stream)?);
             }
 
+            let end_rva = if section_headers.len() == 0 {
+                0
+            } else {
+                section_headers[section_headers.len() - 1].virtual_end()
+            };
+
             // Success!
             Ok(PeReader {
                 coff_header: coff_header,
                 pe_header: pe_header,
                 section_headers: section_headers,
                 rva_position: 0,
+                end_rva: end_rva,
                 stream: stream,
             })
         }
@@ -143,6 +151,22 @@ impl<R: Read + Seek> PeReader<R> {
     }
 }
 
+impl<R: Read + Seek> Seek for PeReader<R> {
+    fn seek(&mut self, pos: SeekFrom) -> ::std::io::Result<u64> {
+        use std::io;
+
+        // Seek the rva_position value
+        match pos {
+            SeekFrom::Start(x) => self.rva_position = x as u32,
+            SeekFrom::End(x) => self.rva_position = self.end_rva - x as u32,
+            SeekFrom::Current(x) => self.rva_position += x as u32,
+        };
+
+        // Return it
+        Ok(self.rva_position as u64)
+    }
+}
+
 impl<R: Read + Seek> Read for PeReader<R> {
     fn read(&mut self, buf: &mut [u8]) -> ::std::io::Result<usize> {
         use std::io;
@@ -188,7 +212,8 @@ impl<R: Read + Seek> Read for PeReader<R> {
                 }
             }
 
-            // Return the read amount
+            // Return the read amount and advance rva_position
+            self.rva_position += read_size as u32;
             Ok(read_size)
         }
     }

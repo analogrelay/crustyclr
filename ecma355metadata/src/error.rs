@@ -15,10 +15,28 @@ pub enum Error {
 
     /// The requested section was not found.
     SectionNotFound,
+
+    /// The image does not contain a CLI header
+    CliHeaderNotFound,
+
+    /// The image contains a string which is not valid UTF-8 or UTF-16
+    InvalidStringData,
 }
 
 impl From<::std::io::Error> for Error {
     fn from(e: ::std::io::Error) -> Error {
         Error::IoError(e)
+    }
+}
+
+impl From<::std::string::FromUtf8Error> for Error {
+    fn from(e: ::std::string::FromUtf8Error) -> Error {
+        Error::InvalidStringData
+    }
+}
+
+impl From<::std::string::FromUtf16Error> for Error {
+    fn from(e: ::std::string::FromUtf16Error) -> Error {
+        Error::InvalidStringData
     }
 }

@@ -5,8 +5,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use error::Error;
 
 pub struct SectionRange {
-    rva: u32,
-    size: u32,
+    pub rva: u32,
+    pub size: u32,
 }
 
 impl SectionRange {

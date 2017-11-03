@@ -4,36 +4,31 @@ use std::env;
 use std::fs::File;
 
 use ecma355metadata::PeReader;
-use ecma355metadata::format::{CliHeader, DirectoryType};
 
 pub fn main() {
     let args: Vec<_> = env::args().collect();
     if args.len() < 2 {
-        println!("Usage: dump_header <file>");
+        println!("Usage: dump_pe <file>");
     } else {
         let mut file = File::open(&args[1]).unwrap();
-        let mut pe = PeReader::new(&mut file).unwrap();
+        let pe = PeReader::new(&mut file).unwrap();
 
-        {
-            let coff_header = pe.coff_header();
-            println!("COFF Header:");
-            println!("  Machine: 0x{:04X}", coff_header.machine);
-            println!("  Number of Sections: {}", coff_header.number_of_sections);
-            println!("  Timestamp: {}", coff_header.timestamp);
-            println!(
-                "  Symbol Table Offset: 0x{:04X}",
-                coff_header.symbol_table_addr
-            );
-            println!("  Symbol Count: {}", coff_header.symbol_count);
-            println!(
-                "  Optional Header Size: {}",
-                coff_header.optional_header_size
-            );
-            println!("  Characteristics: {}", coff_header.characteristics);
-            println!();
-        }
+        println!("COFF Header:");
+        println!("  Machine: 0x{:04X}", pe.coff_header().machine);
+        println!("  Number of Sections: {}", pe.coff_header().number_of_sections);
+        println!("  Timestamp: {}", pe.coff_header().timestamp);
+        println!(
+            "  Symbol Table Offset: 0x{:04X}",
+            pe.coff_header().symbol_table_addr
+        );
+        println!("  Symbol Count: {}", pe.coff_header().symbol_count);
+        println!(
+            "  Optional Header Size: {}",
+            pe.coff_header().optional_header_size
+        );
+        println!("  Characteristics: {}", pe.coff_header().characteristics);
+        println!();
 
-        let mut cli_header_rva = None;
         if let Some(pe_header) = pe.pe_header() {
             println!("PE Header:");
             println!("  Magic: {}", pe_header.magic);
@@ -94,42 +89,8 @@ pub fn main() {
             println!("Data Directories:");
 
             for dir in pe_header.directories() {
-                if dir.directory_type == DirectoryType::CliHeader {
-                    cli_header_rva = Some(dir.rva);
-                }
                 println!("  {}", dir);
             }
-            println!();
-        }
-
-        if let Some(cli_header_rva) = cli_header_rva {
-            // Seek to the Cli header
-            pe.seek_rva(cli_header_rva).unwrap();
-
-            // Read the header
-            let cli_header = CliHeader::read(&mut pe).unwrap();
-            println!("CLI Header");
-            println!("  Size: {}", cli_header.header_size);
-            println!(
-                "  Runtime Version: {}.{}",
-                cli_header.major_runtime_version,
-                cli_header.minor_runtime_version
-            );
-            println!("  Metadata: {}", cli_header.metadata);
-            println!("  Flags: 0x{:04X}", cli_header.flags);
-            println!("  Entrypoint Token: 0x{:08X}", cli_header.entry_point_token);
-            println!("  Resources: {}", cli_header.resources);
-            println!("  Strong Name: {}", cli_header.strong_name);
-            println!("  Code Manager Table: {}", cli_header.code_manager_table);
-            println!("  VTable Fixups: {}", cli_header.vtable_fixups);
-            println!(
-                "  Export Address Table Jumps: {}",
-                cli_header.export_address_table_jumps
-            );
-            println!(
-                "  Managed/Native Header: {}",
-                cli_header.managed_native_header
-            );
             println!();
         }
 

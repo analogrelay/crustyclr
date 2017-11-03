@@ -6,9 +6,9 @@ mod directory_entry;
 mod section_header;
 mod cli_header;
 mod section_range;
+mod metadata_header;
 mod characteristics;
-
-pub mod directories;
+mod cli_flags;
 
 pub use self::coff_header::CoffHeader;
 pub use self::pe_header::PeHeader;
@@ -19,3 +19,5 @@ pub use self::section_header::SectionHeader;
 pub use self::characteristics::{FileCharacteristics,SectionCharacteristics};
 pub use self::cli_header::CliHeader;
 pub use self::section_range::SectionRange;
+pub use self::metadata_header::MetadataHeader;
+pub use self::cli_flags::CliFlags;
