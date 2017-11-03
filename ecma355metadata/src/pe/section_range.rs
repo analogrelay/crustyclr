@@ -15,14 +15,15 @@ impl SectionRange {
     pub fn new(rva: u32, size: u32) -> SectionRange {
         SectionRange {
             rva: rva,
-            size: size
+            size: size,
         }
     }
 
     pub fn read<A: Read>(buf: &mut A) -> Result<SectionRange, Error> {
         Ok(SectionRange::new(
             buf.read_u32::<LittleEndian>()?,
-            buf.read_u32::<LittleEndian>()?))
+            buf.read_u32::<LittleEndian>()?,
+        ))
     }
 
     pub fn end(&self) -> u32 {

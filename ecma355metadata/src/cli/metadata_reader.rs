@@ -1,3 +1,5 @@
+use std::io::{Seek, SeekFrom};
+
 use error::Error;
 
 use pe::{DirectoryType, PeImage};
@@ -48,6 +50,25 @@ impl MetadataReader {
 
     pub fn stream_headers(&self) -> &Vec<MetadataStreamHeader> {
         &self.stream_headers
+    }
+
+    pub fn get_stream(&'a mut self, name: &str) -> Option<StreamReader<'a>> {
+        if let Some(header) = self.stream_headers.iter().find(|s| s.name == name) {
+            let section_reader = self.get_metadata_section_reader();
+
+            // Seek to the stream offset
+            if let Ok(_) = section_reader.seek(SeekFrom::Start(header.offset)) {
+                // Wrap it in a stream reader
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    fn get_metadata_section_reader(&'a mut self) -> Option<SectionReader<'a>> {
+        self.pe_image.create_reader(self.cli_header.metadata.rva)
     }
 }
 
