@@ -4,7 +4,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use error::Error;
 
-use format::FileCharacteristics;
+use pe::FileCharacteristics;
 
 #[derive(Debug)]
 pub struct CoffHeader {

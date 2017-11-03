@@ -3,9 +3,8 @@ use std::io::Read;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use error::Error;
-use format::{DirectoryEntry, DirectoryType, PeMagic, Subsystem};
+use pe::{DirectoryEntry, DirectoryType, PeMagic, Subsystem};
 
-#[derive(Debug)]
 pub struct PeHeader {
     pub magic: PeMagic,
     pub major_linker_version: u8,

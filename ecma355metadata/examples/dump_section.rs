@@ -2,9 +2,10 @@ extern crate ecma355metadata;
 
 use std::env;
 use std::fs::File;
+use std::io::Read;
 use std::ascii::AsciiExt;
 
-use ecma355metadata::PeReader;
+use ecma355metadata::pe::PeImage;
 
 const STRIDE: usize = 32;
 
@@ -33,33 +34,41 @@ pub fn main() {
         let filename = &args[1];
         let section_name = &args[2];
         let mut file = File::open(filename).unwrap();
-        let mut pe = PeReader::new(&mut file).unwrap();
+        let mut pe = PeImage::read(&mut file).unwrap();
 
-        // Seek to the section
-        let mut section = Vec::new();
-        pe.read_section(section_name, &mut section).unwrap();
-
-        println!("Section: {}", section_name);
-        println!();
-        let lines = section.len() / STRIDE;
-        for line_number in 0..lines {
-            if line_number % 20 == 0 {
-                println!();
-                print_headers();
-            }
-
-            let offset = line_number * STRIDE;
-            print!("0x{:04X} | ", offset);
-            for index in 0..STRIDE {
-                print!("{:02X} ", section[offset + index]);
-            }
-            print!(" | ");
-            for index in 0..STRIDE {
-                let val = section[offset + index];
-                let ch = if is_printable(val) { val.into() } else { '.' };
-                print!("{}", ch);
-            }
+        // Get the section
+        if let Some(section) = pe.get_section(section_name) {
+            println!("Section: {}", section.header().name);
             println!();
+            let mut reader = section.create_reader();
+            let mut buf = [0u8; STRIDE];
+            let mut line_number = 0;
+            loop {
+                if line_number % 20 == 0 {
+                    println!();
+                    print_headers();
+                }
+
+                let read = reader.read(&mut buf).unwrap();
+                if read == 0 {
+                    return;
+                }
+
+                let offset = line_number * STRIDE;
+                print!("0x{:04X} | ", offset);
+                for index in 0..STRIDE {
+                    print!("{:02X} ", buf[index]);
+                }
+                print!(" | ");
+                for index in 0..STRIDE {
+                    let val = buf[index];
+                    let ch = if is_printable(val) { val.into() } else { '.' };
+                    print!("{}", ch);
+                }
+                println!();
+
+                line_number += 1;
+            }
         }
     }
 }

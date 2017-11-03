@@ -3,7 +3,7 @@ extern crate ecma355metadata;
 use std::env;
 use std::fs::File;
 
-use ecma355metadata::PeReader;
+use ecma355metadata::pe::PeImage;
 
 pub fn main() {
     let args: Vec<_> = env::args().collect();
@@ -11,7 +11,7 @@ pub fn main() {
         println!("Usage: dump_pe <file>");
     } else {
         let mut file = File::open(&args[1]).unwrap();
-        let pe = PeReader::new(&mut file).unwrap();
+        let pe = PeImage::read(&mut file).unwrap();
 
         println!("COFF Header:");
         println!("  Machine: 0x{:04X}", pe.coff_header().machine);
@@ -95,32 +95,32 @@ pub fn main() {
         }
 
         println!("Sections:");
-        for section in pe.section_headers() {
-            println!("  {}", section.name);
-            println!("    Virtual Size: 0x{:08X}", section.virtual_size);
-            println!("    Virtual Address: 0x{:08X}", section.virtual_address);
-            println!("    Size of Raw Data: 0x{:08X}", section.size_of_raw_data);
+        for section in pe.sections() {
+            println!("  {}", section.header().name);
+            println!("    Virtual Size: 0x{:08X}", section.header().virtual_size);
+            println!("    Virtual Address: 0x{:08X}", section.header().virtual_address);
+            println!("    Size of Raw Data: 0x{:08X}", section.header().size_of_raw_data);
             println!(
                 "    Pointer to Raw Data: 0x{:08X}",
-                section.pointer_to_raw_data
+                section.header().pointer_to_raw_data
             );
             println!(
                 "    Pointer to Relocations: 0x{:08X}",
-                section.pointer_to_relocations
+                section.header().pointer_to_relocations
             );
             println!(
                 "    Pointer to Line Numbers: 0x{:08X}",
-                section.pointer_to_linenumbers
+                section.header().pointer_to_linenumbers
             );
             println!(
                 "    Number of Relocations: {}",
-                section.number_of_relocations
+                section.header().number_of_relocations
             );
             println!(
                 "    Number of Line Numbers: {}",
-                section.number_of_linenumbers
+                section.header().number_of_linenumbers
             );
-            println!("    Characteristics: {}", section.characteristics);
+            println!("    Characteristics: {}", section.header().characteristics);
         }
     }
 }

@@ -4,6 +4,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use error::Error;
 
+use utils;
+
 pub struct MetadataHeader {
     pub major_version: u16,
     pub minor_version: u16,
@@ -32,13 +34,7 @@ impl MetadataHeader {
             let version_length = buf.read_u32::<LittleEndian>()? as usize;
 
             // Read the string (unsafe because we use set_len)
-            let version_bytes = unsafe {
-                let mut vec = Vec::with_capacity(version_length);
-                vec.reserve_exact(version_length);
-                vec.set_len(version_length);
-                buf.read_exact(vec.as_mut_slice())?;
-                vec
-            };
+            let version_bytes = utils::read_bytes(buf, version_length)?;
             let version = String::from_utf8(version_bytes)?;
 
             // Use Seek to get the current position

@@ -37,9 +37,15 @@ pub fn main() {
         );
         println!();
 
-        println!("Metadata Header");
+        println!("Metadata Header:");
         println!("  Version: {}.{} ({})", assembly.metadata_header().major_version, assembly.metadata_header().minor_version, assembly.metadata_header().version);
         println!("  Flags: 0x{:04X}", assembly.metadata_header().flags);
         println!("  Streams: {}", assembly.metadata_header().streams);
+        println!();
+
+        println!("Streams:");
+        for stream_header in assembly.stream_headers() {
+            println!("  [0x{:08X} - 0x{:08X}] {}", stream_header.offset, stream_header.offset + stream_header.size, stream_header.name);
+        }
     }
 }

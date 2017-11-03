@@ -3,13 +3,13 @@ extern crate byteorder;
 #[macro_use]
 extern crate bitflags;
 
-mod pe_reader;
-mod metadata_reader;
 mod error;
+mod utils;
 
-/// Contains raw data structures from PE/CIL files.
-pub mod format;
+/// Contains CLI metadata structures
+// pub mod cli;
 
-pub use pe_reader::PeReader;
-pub use metadata_reader::MetadataReader;
+/// Contains PE structures
+pub mod pe;
+
 pub use error::Error;

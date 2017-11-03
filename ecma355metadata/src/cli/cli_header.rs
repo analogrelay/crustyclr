@@ -3,7 +3,8 @@ use std::io::Read;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use error::Error;
-use format::{SectionRange, CliFlags};
+use cli::CliFlags;
+use pe::SectionRange;
 
 pub struct CliHeader {
     pub header_size: u32,

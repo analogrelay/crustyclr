@@ -1,8 +1,7 @@
 use std::io::Read;
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
 use error::Error;
+use pe::SectionRange;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum DirectoryType {
@@ -49,28 +48,23 @@ impl ::std::fmt::Display for DirectoryType {
     }
 }
 
-#[derive(Debug)]
 pub struct DirectoryEntry {
     pub directory_type: DirectoryType,
-    pub rva: u32,
-    pub size: u32,
+    pub range: SectionRange,
 }
 
 impl DirectoryEntry {
-    pub fn new(directory_type: DirectoryType, rva: u32, size: u32) -> DirectoryEntry {
+    pub fn new(directory_type: DirectoryType, range: SectionRange) -> DirectoryEntry {
         DirectoryEntry {
             directory_type: directory_type,
-            rva: rva,
-            size: size,
+            range: range,
         }
     }
 
     pub fn read<A: Read>(directory_type: DirectoryType, buf: &mut A) -> Result<DirectoryEntry, Error> {
         Ok(DirectoryEntry::new(
             directory_type,
-            buf.read_u32::<LittleEndian>()?,
-            buf.read_u32::<LittleEndian>()?,
-        ))
+            SectionRange::read(buf)?))
     }
 }
 
@@ -78,9 +72,8 @@ impl ::std::fmt::Display for DirectoryEntry {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
         write!(
             f,
-            "0x{:08X} (Size: 0x{:08X}): {}",
-            self.rva,
-            self.size,
+            "{}: {}",
+            self.range,
             self.directory_type
         )
     }

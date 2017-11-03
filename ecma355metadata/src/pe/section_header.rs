@@ -4,7 +4,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use error::Error;
 
-use format::SectionCharacteristics;
+use pe::SectionCharacteristics;
 
 pub struct SectionHeader {
     pub name: String,
