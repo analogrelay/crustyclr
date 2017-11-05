@@ -3,6 +3,7 @@ bitflags! {
         const LARGE_STRINGS = 0x01;
         const LARGE_GUIDS = 0x02;
         const LARGE_BLOBS = 0x04;
+        const EXTRA_DATA = 0x40;
     }
 }
 
