@@ -21,6 +21,9 @@ pub enum Error {
 
     /// The image contains a string which is not valid UTF-8 or UTF-16
     InvalidStringData,
+
+    /// The requested metadata stream was not found.
+    StreamNotFound,
 }
 
 impl From<::std::io::Error> for Error {

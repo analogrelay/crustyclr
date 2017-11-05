@@ -101,12 +101,14 @@ impl PeImage {
         }
     }
 
-    pub fn create_reader<'a>(&'a self, rva: u32) -> Option<SectionReader<'a>> {
-        self.sections.iter().find(|x| x.contains_rva(rva)).map(|s| {
-            let section_offset = rva - s.header().virtual_address;
-            let mut reader = s.create_reader();
-            reader.seek(SeekFrom::Start(section_offset as u64));
-            reader
-        })
+    pub fn create_reader<'a>(&'a self, rva: u32) -> Result<SectionReader<'a>, Error> {
+        if let Some(section_header) = self.sections.iter().find(|x| x.contains_rva(rva)) {
+            let section_offset = rva - section_header.header().virtual_address;
+            let mut reader = section_header.create_reader();
+            reader.seek(SeekFrom::Start(section_offset as u64))?;
+            Ok(reader)
+        } else {
+            Err(Error::SectionNotFound)
+        }
     }
 }

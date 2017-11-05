@@ -26,9 +26,6 @@ impl PeSection {
     }
 
     pub fn create_reader<'a>(&'a self) -> SectionReader<'a> {
-        SectionReader {
-            section: self,
-            offset: 0,
-        }
+        SectionReader::new(self, 0)
     }
 }
