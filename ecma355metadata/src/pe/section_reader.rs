@@ -2,6 +2,7 @@ use std::io::{self, Read, Seek, SeekFrom};
 
 use pe::PeSection;
 
+#[derive(Clone)]
 pub struct SectionReader<'a> {
     section: &'a PeSection,
     offset: u32,

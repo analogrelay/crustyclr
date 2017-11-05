@@ -2,6 +2,7 @@ use std::io::{Error, Read, Seek, SeekFrom};
 
 use pe::SectionReader;
 
+#[derive(Clone)]
 pub struct StreamReader<'a> {
     section_reader: SectionReader<'a>,
     start: u32,
@@ -9,7 +10,8 @@ pub struct StreamReader<'a> {
 }
 
 impl<'a> StreamReader<'a> {
-    pub fn new(section_reader: SectionReader<'a>, start: u32, size: u32) -> StreamReader {
+    pub fn new(section_reader: SectionReader<'a>, size: u32) -> StreamReader {
+        let start = section_reader.offset();
         StreamReader {
             section_reader: section_reader,
             start: start,
@@ -32,7 +34,8 @@ impl<'a> Seek for StreamReader<'a> {
 impl<'a> Read for StreamReader<'a> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
         // Clamp the read size to whatever is left
-        let remaining_to_read = self.size as usize - (self.section_reader.offset() as usize - self.start as usize);
+        let read_so_far = (self.section_reader.offset() as usize - self.start as usize);
+        let remaining_to_read = self.size as usize - read_so_far;
         let read_size = if buf.len() > remaining_to_read {
             remaining_to_read
         } else {

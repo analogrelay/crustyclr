@@ -9,6 +9,7 @@ use cli::{HeapSizes, TableIndex, TableMask};
 pub struct TableHeader {
     pub table: TableIndex,
     pub sorted: bool,
+    pub rows: u32,
 }
 
 pub struct TableList {
@@ -31,8 +32,8 @@ impl TableList {
         buf.read_u8()?;
 
         // Read valid and sorted vectors
-        let valid_mask = TableMask::from_bits_truncate(buf.read_u64::<BigEndian>()?);
-        let sorted_mask = TableMask::from_bits_truncate(buf.read_u64::<BigEndian>()?);
+        let valid_mask = TableMask::from_bits_truncate(buf.read_u64::<LittleEndian>()?);
+        let sorted_mask = TableMask::from_bits_truncate(buf.read_u64::<LittleEndian>()?);
 
         // Determine which tables are present, and which are sorted
         let mut tables = Vec::new();
@@ -40,7 +41,8 @@ impl TableList {
             if valid_mask.has_table(idx) {
                 tables.push(TableHeader {
                     table: idx,
-                    sorted: sorted_mask.has_table(idx)
+                    sorted: sorted_mask.has_table(idx),
+                    rows: buf.read_u32::<LittleEndian>()?,
                 })
             }
         }

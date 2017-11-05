@@ -65,23 +65,16 @@ impl MetadataReader {
     pub fn get_stream<'a>(&'a mut self, name: &str) -> Result<StreamReader<'a>, Error> {
         let (offset, size) = {
             if let Some(header) = self.stream_headers.iter().find(|s| s.name == name) {
-                (header.offset, header.size)
+                (self.cli_header.metadata.rva + header.offset, header.size)
             } else {
                 return Err(Error::StreamNotFound)
             }
         };
 
-        let mut section_reader = self.get_metadata_section_reader()?;
-
-        // Seek to the stream offset
-        section_reader.seek(SeekFrom::Start(offset as u64))?;
+        let mut section_reader = self.pe_image.create_reader(offset)?;
 
         // Wrap it in a stream reader
-        Ok(StreamReader::new(section_reader, offset, size))
-    }
-
-    fn get_metadata_section_reader<'a>(&'a mut self) -> Result<SectionReader<'a>, Error> {
-        self.pe_image.create_reader(self.cli_header.metadata.rva)
+        Ok(StreamReader::new(section_reader, size))
     }
 
     fn load_tables(&mut self) -> Result<(), Error> {

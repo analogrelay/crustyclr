@@ -69,7 +69,7 @@ pub fn main() {
         println!("  Version: {}.{}", assembly.table_list().major_version, assembly.table_list().minor_version);
         println!("  HeapSizes: {}", assembly.table_list().heap_sizes);
         for table in assembly.table_list().tables() {
-            println!("  {}: {}", table.table, if table.sorted { "Sorted" } else { "Unsorted" });
+            println!("  {}: {} rows, {}", table.table, table.rows, if table.sorted { "Sorted" } else { "Unsorted" });
         }
     }
 }
