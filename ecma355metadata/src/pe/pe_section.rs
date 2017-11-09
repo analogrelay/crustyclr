@@ -1,4 +1,4 @@
-use pe::{SectionHeader, SectionReader};
+use pe::SectionHeader;
 
 pub struct PeSection {
     header: SectionHeader,
@@ -17,15 +17,11 @@ impl PeSection {
         &self.header
     }
 
-    pub fn raw_data(&self) -> &[u8] {
+    pub fn data(&self) -> &[u8] {
         self.data.as_slice()
     }
 
     pub fn contains_rva(&self, rva: u32) -> bool {
         rva >= self.header.virtual_address && rva <= self.header.virtual_end()
-    }
-
-    pub fn create_reader<'a>(&'a self) -> SectionReader<'a> {
-        SectionReader::new(self, 0)
     }
 }

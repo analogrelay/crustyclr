@@ -6,13 +6,13 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use cli::HeapSizes;
 use error::Error;
 
-pub trait HeapRef {
+pub trait HeapRef: Sized {
     const SIZE_FLAG: HeapSizes;
 
     fn new(index: u32) -> Self;
 
     fn size(heap_sizes: HeapSizes) -> usize {
-        if(heap_sizes.contains(Self::SIZE_FLAG))) {
+        if heap_sizes.contains(Self::SIZE_FLAG) {
             size_of::<u32>()
         } else {
             size_of::<u16>()
@@ -20,10 +20,10 @@ pub trait HeapRef {
     }
 
     fn read<R: Read>(reader: &mut R, heap_sizes: HeapSizes) -> Result<Self, Error> {
-        if(heap_sizes.contains(Self::SIZE_FLAG))) {
-            Self::new(reader.read_u32::<LittleEndian>()?)
+        if heap_sizes.contains(Self::SIZE_FLAG) {
+            Ok(Self::new(reader.read_u32::<LittleEndian>()?))
         } else {
-            Self::new(reader.read_u16::<LittleEndian>()? as u32)
+            Ok(Self::new(reader.read_u16::<LittleEndian>()? as u32))
         }
     }
 }

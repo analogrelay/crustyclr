@@ -2,8 +2,7 @@ use std::io::{Read, Seek, SeekFrom};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use pe::{CoffHeader, DirectoryEntry, DirectoryType, PeHeader, PeSection, SectionHeader,
-         SectionReader};
+use pe::{CoffHeader, DirectoryEntry, DirectoryType, PeHeader, PeSection, SectionHeader};
 use error::Error;
 use utils;
 
@@ -101,12 +100,10 @@ impl PeImage {
         }
     }
 
-    pub fn create_reader<'a>(&'a self, rva: u32) -> Result<SectionReader<'a>, Error> {
+    pub fn load<'a>(&'a self, rva: u32, length: usize) -> Result<&'a [u8], Error> {
         if let Some(section) = self.sections.iter().find(|x| x.contains_rva(rva)) {
-            let section_offset = rva - section.header().virtual_address;
-            let mut reader = section.create_reader();
-            reader.seek(SeekFrom::Start(section_offset as u64))?;
-            Ok(reader)
+            let section_offset = (rva - section.header().virtual_address) as usize;
+            Ok(&section.data()[section_offset..(section_offset + length)])
         } else {
             Err(Error::SectionNotFound)
         }

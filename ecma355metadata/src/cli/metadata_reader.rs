@@ -1,103 +1,61 @@
-use std::io::{Seek, SeekFrom};
+use std::io::Cursor;
 
+use byteorder::{LittleEndian, ReadBytesExt};
+
+use cli::{HeapSizes, MetadataHeader, StreamHeader, TableMask};
+use cli::tables;
 use error::Error;
 
-use pe::{DirectoryType, PeImage, SectionReader};
-use cli::{CliHeader, MetadataHeader, MetadataStreamHeader, StreamReader, TableList};
-
-pub struct MetadataReader {
-    pe_image: PeImage,
-    cli_header: CliHeader,
+pub struct MetadataReader<'a> {
     metadata_header: MetadataHeader,
-    stream_headers: Vec<MetadataStreamHeader>,
-    table_list: Option<TableList>
+    heap_sizes: HeapSizes,
+    module_cursor: Cursor<&'a [u8]>,
 }
 
-impl MetadataReader {
-    pub fn new(mut pe: PeImage) -> Result<MetadataReader, Error> {
-        // Locate and load the CLI header
-        let cli_header = load_cli_header(&mut pe)?;
+impl<'a> MetadataReader<'a> {
+    pub fn new(data: &'a [u8]) -> Result<MetadataReader<'a>, Error> {
+        // Read the metadata and stream headers
+        let mut cursor = Cursor::new(data);
 
-        let (metadata_header, stream_headers) = {
-            // Locate and load metadata_header
-            let mut reader = pe.create_reader(cli_header.metadata.rva)?;
-            let metadata_header = MetadataHeader::read(&mut reader)?;
+        let metadata_header = MetadataHeader::read(&mut cursor)?;
 
-            // Load stream headers
-            let mut stream_headers = Vec::with_capacity(metadata_header.streams as usize);
-            for _ in 0..metadata_header.streams {
-                stream_headers.push(MetadataStreamHeader::read(&mut reader)?);
-            }
+        let mut stream_headers = Vec::with_capacity(metadata_header.streams as usize);
+        for _ in 0..metadata_header.streams {
+            stream_headers.push(StreamHeader::read(&mut cursor)?);
+        }
 
-            (metadata_header, stream_headers)
-        };
-        
-        let mut reader = MetadataReader {
-            pe_image: pe,
-            cli_header: cli_header,
+        let metadata_stream = stream_headers
+            .iter()
+            .find(|h| h.name == "#~")
+            .ok_or(Error::StreamNotFound)?;
+        let start = metadata_stream.offset as usize;
+        let end = start + (metadata_stream.size as usize);
+        let metadata = &data[start..end];
+
+        let mut cursor = Cursor::new(metadata);
+
+        // Skip reserved value, and version numbers
+        cursor.read_u32::<LittleEndian>()?;
+        cursor.read_u8()?;
+        cursor.read_u8()?;
+        let heap_sizes = HeapSizes::from_bits_truncate(cursor.read_u8()?);
+
+        // Skip reserved value
+        cursor.read_u8()?;
+
+        // Read valid and sorted vectors
+        let valid_mask = TableMask::from_bits_truncate(cursor.read_u64::<LittleEndian>()?);
+        let sorted_mask = TableMask::from_bits_truncate(cursor.read_u64::<LittleEndian>()?);
+
+        Ok(MetadataReader {
             metadata_header: metadata_header,
-            stream_headers: stream_headers,
-            table_list: None
-        };
-
-        reader.load_tables()?;
-
-        Ok(reader)
+            heap_sizes: heap_sizes,
+            module_cursor: cursor,
+        })
     }
 
-    pub fn cli_header(&self) -> &CliHeader {
-        &self.cli_header
+    pub fn modules(&self) -> Box<Iterator<Item = Result<tables::Module, Error>>> {
+        let module_reader = tables::ModuleTable::new(self.module_cursor.clone(), self.heap_sizes);
+        Box::new(module_reader)
     }
-
-    pub fn metadata_header(&self) -> &MetadataHeader {
-        &self.metadata_header
-    }
-
-    pub fn stream_headers(&self) -> &Vec<MetadataStreamHeader> {
-        &self.stream_headers
-    }
-
-    pub fn table_list(&self) -> &TableList {
-        // This is guaranteed to be Some(), because new() initializes it.
-        self.table_list.as_ref().expect("MetadataReader was not properly initialized. The table list wasn't loaded!")
-    }
-
-    pub fn get_stream<'a>(&'a mut self, name: &str) -> Result<StreamReader<'a>, Error> {
-        let (offset, size) = {
-            if let Some(header) = self.stream_headers.iter().find(|s| s.name == name) {
-                (self.cli_header.metadata.rva + header.offset, header.size)
-            } else {
-                return Err(Error::StreamNotFound)
-            }
-        };
-
-        let mut section_reader = self.pe_image.create_reader(offset)?;
-
-        // Wrap it in a stream reader
-        Ok(StreamReader::new(section_reader, size))
-    }
-
-    fn load_tables(&mut self) -> Result<(), Error> {
-        let table_header = {
-            // Get a reader for "#~"
-            let mut table_stream_reader = self.get_stream("#~")?;
-
-            // Read the table header
-            TableList::read(&mut table_stream_reader)?
-        };
-
-        self.table_list = Some(table_header);
-
-        Ok(())
-    }
-}
-
-fn load_cli_header(pe: &mut PeImage) -> Result<CliHeader, Error> {
-    let cli_header_rva = pe.get_directory(DirectoryType::CliHeader)
-        .map(|d| d.range.rva)
-        .ok_or(Error::CliHeaderNotFound)?;
-
-    let mut reader = pe.create_reader(cli_header_rva)?;
-
-    Ok(CliHeader::read(&mut reader)?)
 }

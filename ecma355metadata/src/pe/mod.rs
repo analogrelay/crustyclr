@@ -7,7 +7,6 @@ mod pe_magic;
 mod pe_section;
 mod section_header;
 mod section_range;
-mod section_reader;
 mod subsystem;
 
 pub use self::coff_header::CoffHeader;
@@ -17,7 +16,6 @@ pub use self::subsystem::Subsystem;
 pub use self::directory_entry::{DirectoryEntry, DirectoryType};
 pub use self::section_header::SectionHeader;
 pub use self::section_range::SectionRange;
-pub use self::section_reader::SectionReader;
 pub use self::pe_image::PeImage;
 pub use self::pe_section::PeSection;
 pub use self::characteristics::{FileCharacteristics, SectionCharacteristics};

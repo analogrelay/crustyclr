@@ -4,15 +4,15 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use error::Error;
 
-pub struct MetadataStreamHeader {
+pub struct StreamHeader {
     pub offset: u32,
     pub size: u32,
     pub name: String,
 }
 
 
-impl MetadataStreamHeader {
-    pub fn read<A: Read>(stream: &mut A) -> Result<MetadataStreamHeader, Error> {
+impl StreamHeader {
+    pub fn read<A: Read>(stream: &mut A) -> Result<StreamHeader, Error> {
         let offset = stream.read_u32::<LittleEndian>()?;
         let size = stream.read_u32::<LittleEndian>()?;
 
@@ -20,7 +20,7 @@ impl MetadataStreamHeader {
         let name_bytes = read_nul_terminated_bytes(stream, 32)?;
         let name = String::from_utf8(name_bytes)?;
 
-        Ok(MetadataStreamHeader {
+        Ok(StreamHeader {
             offset: offset,
             size: size,
             name: name,
