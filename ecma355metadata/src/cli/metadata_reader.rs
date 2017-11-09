@@ -52,18 +52,19 @@ impl<'a> MetadataReader<'a> {
 
         // Read valid and sorted vectors
         let valid_mask = TableMask::from_bits_truncate(cursor.read_u64::<LittleEndian>()?);
-        let sorted_mask = TableMask::from_bits_truncate(cursor.read_u64::<LittleEndian>()?);
+        let _sorted_mask = TableMask::from_bits_truncate(cursor.read_u64::<LittleEndian>()?);
 
         // Load row counts
         let mut row_counts = Vec::new();
         for idx in TableIndex::each() {
             if valid_mask.has_table(idx) {
-                row_counts.push(cursor.read_u32::<LittleEndian>()?);
+                let size = cursor.read_u32::<LittleEndian>()?;
+                row_counts.push(size);
             }
         }
 
         // Get the position of the cursor and re-slice the data to get the rows
-        let mut rows = &data[cursor.position() as usize..];
+        let mut rows = &metadata_stream[cursor.position() as usize..];
 
         let mut row_iter = row_counts.iter();
 

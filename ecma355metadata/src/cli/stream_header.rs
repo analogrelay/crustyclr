@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{Read, Seek, SeekFrom};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -12,13 +12,16 @@ pub struct StreamHeader {
 
 
 impl StreamHeader {
-    pub fn read<A: Read>(stream: &mut A) -> Result<StreamHeader, Error> {
+    pub fn read<A: Read + Seek>(stream: &mut A) -> Result<StreamHeader, Error> {
         let offset = stream.read_u32::<LittleEndian>()?;
         let size = stream.read_u32::<LittleEndian>()?;
 
         // Read no more than 32 nul-terminated bytes
         let name_bytes = read_nul_terminated_bytes(stream, 32)?;
         let name = String::from_utf8(name_bytes)?;
+
+        // Use Seek to get the current position
+        let current_file_pos = stream.seek(SeekFrom::Current(0))?;
 
         Ok(StreamHeader {
             offset: offset,

@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::Cursor;
 
 use ecma355metadata::{MetadataReader, PeImage};
-use ecma355metadata::cli::CliHeader;
+use ecma355metadata::cli::{CliHeader, HeapRef};
 use ecma355metadata::pe::DirectoryType;
 
 fn load_cli_header(pe: &PeImage) -> CliHeader {
@@ -38,7 +38,11 @@ pub fn main() {
         for row in module_table.iter() {
             let row: ::ecma355metadata::cli::tables::Module = row.unwrap();
             println!("  Generation: {}", row.generation);
-            println!("  Name: {}", row.name.get(string_heap).unwrap());
+            println!(
+                "  Name: {} (Ref: 0x{:X})",
+                row.name.get(string_heap).unwrap(),
+                row.name.index()
+            );
         }
     }
 }

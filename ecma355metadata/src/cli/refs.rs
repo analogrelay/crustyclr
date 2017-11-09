@@ -10,6 +10,7 @@ pub trait HeapRef: Sized {
     const SIZE_FLAG: HeapSizes;
 
     fn new(index: usize) -> Self;
+    fn index(&self) -> usize;
 
     fn size(heap_sizes: HeapSizes) -> usize {
         if heap_sizes.contains(Self::SIZE_FLAG) {
@@ -36,6 +37,10 @@ impl HeapRef for StringRef {
     fn new(index: usize) -> StringRef {
         StringRef(index)
     }
+
+    fn index(&self) -> usize {
+        self.0
+    }
 }
 
 impl StringRef {
@@ -52,6 +57,10 @@ impl HeapRef for GuidRef {
     fn new(index: usize) -> GuidRef {
         GuidRef(index)
     }
+
+    fn index(&self) -> usize {
+        self.0
+    }
 }
 
 pub struct BlobRef(usize);
@@ -61,5 +70,9 @@ impl HeapRef for BlobRef {
 
     fn new(index: usize) -> BlobRef {
         BlobRef(index)
+    }
+
+    fn index(&self) -> usize {
+        self.0
     }
 }

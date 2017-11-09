@@ -74,7 +74,7 @@ impl TableIndex {
 
     fn next(self) -> Option<TableIndex> {
         let val = self as u8;
-        let next_val = if val >= 0x00u8 && val < 0x2Cu8 {
+        let next_val = if val < 0x2Cu8 {
             val + 1
         } else if val < 0x30u8 {
             0x30
