@@ -2,13 +2,14 @@ use std::io::Cursor;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{HeapSizes, MetadataHeader, StreamHeader, TableIndex, TableMask};
+use cli::{HeapSizes, MetadataHeader, StreamHeader, StringHeap, TableIndex, TableMask};
 use cli::tables;
 use error::Error;
 
 pub struct MetadataReader<'a> {
     metadata_header: MetadataHeader,
     heap_sizes: HeapSizes,
+    string_heap: StringHeap<'a>,
     module_table: tables::ModuleTable<'a>,
 }
 
@@ -19,20 +20,26 @@ impl<'a> MetadataReader<'a> {
 
         let metadata_header = MetadataHeader::read(&mut cursor)?;
 
-        let mut stream_headers = Vec::with_capacity(metadata_header.streams as usize);
+        let mut metadata_stream: &[u8] = &[0u8; 0];
+        let mut string_heap = StringHeap::empty();
         for _ in 0..metadata_header.streams {
-            stream_headers.push(StreamHeader::read(&mut cursor)?);
+            let header = StreamHeader::read(&mut cursor)?;
+            if header.name == "#~" {
+                let start = header.offset as usize;
+                let end = start + (header.size as usize);
+                metadata_stream = &data[start..end];
+            } else if header.name == "#Strings" {
+                let start = header.offset as usize;
+                let end = start + (header.size as usize);
+                string_heap = StringHeap::new(&data[start..end])
+            }
         }
 
-        let metadata_stream = stream_headers
-            .iter()
-            .find(|h| h.name == "#~")
-            .ok_or(Error::StreamNotFound)?;
-        let start = metadata_stream.offset as usize;
-        let end = start + (metadata_stream.size as usize);
-        let metadata = &data[start..end];
+        if metadata_stream.len() == 0 {
+            return Err(Error::StreamNotFound);
+        }
 
-        let mut cursor = Cursor::new(metadata);
+        let mut cursor = Cursor::new(metadata_stream);
 
         // Skip reserved value, and version numbers
         cursor.read_u32::<LittleEndian>()?;
@@ -63,6 +70,7 @@ impl<'a> MetadataReader<'a> {
         Ok(MetadataReader {
             metadata_header: metadata_header,
             heap_sizes: heap_sizes,
+            string_heap: string_heap,
             module_table: get_module_table(&mut rows, heap_sizes, valid_mask, &mut row_iter)?,
         })
     }
@@ -77,6 +85,10 @@ impl<'a> MetadataReader<'a> {
 
     pub fn module_table(&self) -> &tables::ModuleTable<'a> {
         &self.module_table
+    }
+
+    pub fn string_heap(&self) -> &StringHeap<'a> {
+        &self.string_heap
     }
 }
 

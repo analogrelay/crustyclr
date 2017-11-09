@@ -6,6 +6,7 @@ mod metadata_reader;
 mod heap_sizes;
 mod refs;
 mod table_index;
+mod string_heap;
 
 pub mod tables;
 
@@ -17,3 +18,4 @@ pub use self::stream_header::StreamHeader;
 pub use self::metadata_reader::MetadataReader;
 pub use self::heap_sizes::HeapSizes;
 pub use self::refs::{BlobRef, GuidRef, HeapRef, StringRef};
+pub use self::string_heap::StringHeap;

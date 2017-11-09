@@ -31,12 +31,14 @@ pub fn main() {
                 .unwrap(),
         ).unwrap();
 
+        let string_heap = assembly.string_heap();
         let module_table = assembly.module_table();
         println!("Module Table: {} rows", module_table.len());
 
         for row in module_table.iter() {
-            let row = row.unwrap();
-            println!("Generation: {}", row.generation);
+            let row: ::ecma355metadata::cli::tables::Module = row.unwrap();
+            println!("  Generation: {}", row.generation);
+            println!("  Name: {}", row.name.get(string_heap).unwrap());
         }
     }
 }

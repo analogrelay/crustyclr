@@ -27,11 +27,20 @@ pub enum Error {
 
     /// The metadata file is invalid in an unexpected way.
     InvalidMetadata,
+
+    /// An invalid heap reference was provided.
+    InvalidHeapReference,
 }
 
 impl From<::std::io::Error> for Error {
     fn from(e: ::std::io::Error) -> Error {
         Error::IoError(e)
+    }
+}
+
+impl From<::std::str::Utf8Error> for Error {
+    fn from(_: ::std::str::Utf8Error) -> Error {
+        Error::InvalidStringData
     }
 }
 
