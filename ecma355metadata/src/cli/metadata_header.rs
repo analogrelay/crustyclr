@@ -22,11 +22,10 @@ impl MetadataHeader {
         let signature = buf.read_u32::<LittleEndian>()?;
         if signature != METADATA_SIGNATURE {
             Err(Error::InvalidSignature)
-        }
-        else {
+        } else {
             let major_version = buf.read_u16::<LittleEndian>()?;
             let minor_version = buf.read_u16::<LittleEndian>()?;
-            
+
             // Skip reserved value
             buf.read_u32::<LittleEndian>()?;
 
@@ -40,10 +39,13 @@ impl MetadataHeader {
             // Use Seek to get the current position
             let current_file_pos = buf.seek(SeekFrom::Current(0))?;
 
-            // Get the next 4-byte aligned value
-            let flags_start = (current_file_pos + 4) & !0x4u64;
-            if flags_start != current_file_pos {
-                buf.seek(SeekFrom::Start(flags_start))?;
+            // Check if it's aligned
+            if current_file_pos & 0x3 != 0 {
+                // Get the next 4-byte aligned value
+                let flags_start = (current_file_pos + 4) & !0x4u64;
+                if flags_start != current_file_pos {
+                    buf.seek(SeekFrom::Start(flags_start))?;
+                }
             }
 
             // Read flags and streams values and return

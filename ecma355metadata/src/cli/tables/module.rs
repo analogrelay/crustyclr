@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{self, Cursor, Read};
 use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -26,28 +26,75 @@ impl Module {
     }
 }
 
-pub struct ModuleTable<R: Read> {
-    reader: R,
+pub struct ModuleTable<'a> {
+    rows: Option<&'a [u8]>,
     heap_sizes: HeapSizes,
+    row_size: usize,
 }
 
-impl<R: Read> ModuleTable<R> {
-    pub fn new(reader: R, heap_sizes: HeapSizes) -> ModuleTable<R> {
+impl<'a> ModuleTable<'a> {
+    pub fn new(rows: &'a [u8], heap_sizes: HeapSizes) -> ModuleTable<'a> {
         ModuleTable {
-            reader: reader,
+            rows: Some(rows),
             heap_sizes: heap_sizes,
+            row_size: ModuleTable::row_size(heap_sizes),
+        }
+    }
+
+    pub fn empty() -> ModuleTable<'a> {
+        ModuleTable {
+            rows: None,
+            heap_sizes: HeapSizes::empty(),
+            row_size: 0,
+        }
+    }
+
+    pub fn row_size(heap_sizes: HeapSizes) -> usize {
+        size_of::<u16>() + StringRef::size(heap_sizes) + GuidRef::size(heap_sizes)
+            + GuidRef::size(heap_sizes) + GuidRef::size(heap_sizes)
+    }
+
+    pub fn present(&self) -> bool {
+        self.rows.is_some()
+    }
+
+    pub fn len(&self) -> usize {
+        match self.rows {
+            Some(ref r) => r.len() / self.row_size,
+            None => 0,
+        }
+    }
+
+    pub fn iter(&'a self) -> Iter<'a> {
+        match self.rows {
+            None => Iter {
+                cursor: None,
+                table: self,
+            },
+            Some(r) => Iter {
+                cursor: Some(Cursor::new(r)),
+                table: self,
+            },
         }
     }
 }
 
-impl<R: Read> Iterator for ModuleTable<R> {
+pub struct Iter<'a> {
+    cursor: Option<Cursor<&'a [u8]>>,
+    table: &'a ModuleTable<'a>,
+}
+
+impl<'a> Iterator for Iter<'a> {
     type Item = Result<Module, Error>;
 
     fn next(&mut self) -> Option<Result<Module, Error>> {
-        match Module::read(&mut self.reader, self.heap_sizes) {
-            Ok(o) => Some(Ok(o)),
-            Err(Error::IoError(ref io)) if io.kind() == ::std::io::ErrorKind::UnexpectedEof => None,
-            Err(e) => Some(Err(e)),
+        if let Some(ref mut cur) = self.cursor {
+            match Module::read(cur, self.table.heap_sizes) {
+                Err(Error::IoError(ref io)) if io.kind() == io::ErrorKind::UnexpectedEof => None,
+                x => Some(x),
+            }
+        } else {
+            None
         }
     }
 }

@@ -4,7 +4,7 @@ use std::env;
 use std::fs::File;
 use std::io::Cursor;
 
-use ecma355metadata::PeImage;
+use ecma355metadata::{MetadataReader, PeImage};
 use ecma355metadata::cli::CliHeader;
 use ecma355metadata::pe::DirectoryType;
 
@@ -26,10 +26,10 @@ pub fn main() {
         let mut file = File::open(&args[1]).unwrap();
         let pe = PeImage::read(&mut file).unwrap();
         let cli_header = load_cli_header(&pe);
-        // let assembly = MetadataReader::new(
-        //     pe.load(cli_header.metadata.rva, cli_header.metadata.size as usize)
-        //         .unwrap(),
-        // ).unwrap();
+        let assembly = MetadataReader::new(
+            pe.load(cli_header.metadata.rva, cli_header.metadata.size as usize)
+                .unwrap(),
+        ).unwrap();
 
         println!("CLI Header");
         println!("  Size: {}", cli_header.header_size);
@@ -55,16 +55,17 @@ pub fn main() {
         );
         println!();
 
-        // println!("Metadata Header:");
-        // println!(
-        //     "  Version: {}.{} ({})",
-        //     assembly.metadata_header().major_version,
-        //     assembly.metadata_header().minor_version,
-        //     assembly.metadata_header().version
-        // );
-        // println!("  Flags: 0x{:04X}", assembly.metadata_header().flags);
-        // println!("  Streams: {}", assembly.metadata_header().streams);
-        // println!();
+        println!("Metadata Header:");
+        println!(
+            "  Version: {}.{} ({})",
+            assembly.metadata_header().major_version,
+            assembly.metadata_header().minor_version,
+            assembly.metadata_header().version
+        );
+        println!("  Flags: 0x{:04X}", assembly.metadata_header().flags);
+        println!("  HeapSizes: {}", assembly.heap_sizes());
+        println!("  Stream Count: {}", assembly.metadata_header().streams);
+        println!();
 
         // println!("Streams:");
         // for stream_header in assembly.stream_headers() {
@@ -77,20 +78,7 @@ pub fn main() {
         // }
         // println!();
 
-        // println!("Tables:");
-        // println!(
-        //     "  Version: {}.{}",
-        //     assembly.table_list().major_version,
-        //     assembly.table_list().minor_version
-        // );
-        // println!("  HeapSizes: {}", assembly.table_list().heap_sizes);
-        // for table in assembly.table_list().tables() {
-        //     println!(
-        //         "  {}: {} rows, {}",
-        //         table.table,
-        //         table.rows,
-        //         if table.sorted { "Sorted" } else { "Unsorted" }
-        //     );
-        // }
+        println!("Tables:");
+        println!("  Module Table: {} rows", assembly.module_table().len());
     }
 }

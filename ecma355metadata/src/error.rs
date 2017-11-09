@@ -24,6 +24,9 @@ pub enum Error {
 
     /// The requested metadata stream was not found.
     StreamNotFound,
+
+    /// The metadata file is invalid in an unexpected way.
+    InvalidMetadata,
 }
 
 impl From<::std::io::Error> for Error {
