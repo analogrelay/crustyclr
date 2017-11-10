@@ -6,6 +6,7 @@ use std::io::Cursor;
 
 use ecma355metadata::{MetadataReader, PeImage};
 use ecma355metadata::cli::CliHeader;
+use ecma355metadata::cli::tables::Module;
 use ecma355metadata::pe::DirectoryType;
 
 fn load_cli_header(pe: &PeImage) -> CliHeader {
@@ -33,11 +34,11 @@ pub fn main() {
 
         let string_heap = assembly.string_heap();
         let guid_heap = assembly.guid_heap();
-        let module_table = assembly.module_table();
+        let module_table = assembly.table::<Module>();
         println!("Module Table: {} rows", module_table.len());
 
         for row in module_table.iter() {
-            let row: ::ecma355metadata::cli::tables::Module = row.unwrap();
+            let row = row.unwrap();
             println!("  Generation: {}", row.generation);
             println!("  Name: {}", row.name.get(string_heap).unwrap());
             println!("  MVID: {}", row.mvid.get(guid_heap).unwrap());

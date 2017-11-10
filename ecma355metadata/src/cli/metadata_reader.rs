@@ -76,13 +76,15 @@ impl<'a> MetadataReader<'a> {
         &self.metadata_sizes
     }
 
-    pub fn module_table(&'a self) -> Table<'a, tables::Module> {
-        unimplemented!()
-        // if let Some(ref data) = self.module_table_data {
-        //     Table::new(data, &self.metadata_sizes)
-        // } else {
-        //     Table::empty()
-        // }
+    pub fn table<'b, T: TableRow>(&'b self) -> Table<'b, T> {
+        let idx = T::INDEX as usize;
+        if idx > self.table_data.len() {
+            Table::empty()
+        } else if let Some(ref data) = self.table_data[idx] {
+            Table::new(data, &self.metadata_sizes)
+        } else {
+            Table::empty()
+        }
     }
 
     pub fn string_heap(&self) -> &StringHeap<'a> {
@@ -95,13 +97,13 @@ impl<'a> MetadataReader<'a> {
 }
 
 fn load_tables<'a>(mut rows: &'a [u8], sizes: &MetadataSizes) -> Vec<Option<&'a [u8]>> {
-    unimplemented!()
+    let mut tables = Vec::new();
+    tables.push(get_table_data::<tables::Module>(&mut rows, sizes));
+
+    tables
 }
 
-fn get_table_data<'a, T: TableRow>(
-    rows: &mut &'a [u8],
-    sizes: &MetadataSizes,
-) -> Result<Option<&'a [u8]>, Error> {
+fn get_table_data<'a, T: TableRow>(rows: &mut &'a [u8], sizes: &MetadataSizes) -> Option<&'a [u8]> {
     let row_count = sizes.row_count(T::INDEX);
     if row_count > 0 {
         // Determine the total size
@@ -111,8 +113,8 @@ fn get_table_data<'a, T: TableRow>(
         // Advance rows
         *rows = &rows[total_size..];
 
-        Ok(Some(module_rows))
+        Some(module_rows)
     } else {
-        Ok(None)
+        None
     }
 }
