@@ -68,6 +68,8 @@ impl ::std::fmt::Display for TableIndex {
 }
 
 impl TableIndex {
+    pub const MAX: usize = 0x37;
+
     pub fn each() -> TableIndexIter {
         TableIndexIter(Some(TableIndex::Module))
     }

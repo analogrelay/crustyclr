@@ -3,8 +3,9 @@ use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{HeapSizes, StringHeap};
+use cli::{GuidHeap, HeapSizes, MetadataSizes, StringHeap};
 use error::Error;
+use Guid;
 
 pub trait HeapRef: Sized {
     const SIZE_FLAG: HeapSizes;
@@ -12,16 +13,16 @@ pub trait HeapRef: Sized {
     fn new(index: usize) -> Self;
     fn index(&self) -> usize;
 
-    fn size(heap_sizes: HeapSizes) -> usize {
-        if heap_sizes.contains(Self::SIZE_FLAG) {
+    fn size(sizes: &MetadataSizes) -> usize {
+        if sizes.heap_sizes().contains(Self::SIZE_FLAG) {
             size_of::<u32>()
         } else {
             size_of::<u16>()
         }
     }
 
-    fn read<R: Read>(reader: &mut R, heap_sizes: HeapSizes) -> Result<Self, Error> {
-        if heap_sizes.contains(Self::SIZE_FLAG) {
+    fn read<R: Read>(reader: &mut R, sizes: &MetadataSizes) -> Result<Self, Error> {
+        if sizes.heap_sizes().contains(Self::SIZE_FLAG) {
             Ok(Self::new(reader.read_u32::<LittleEndian>()? as usize))
         } else {
             Ok(Self::new(reader.read_u16::<LittleEndian>()? as usize))
@@ -60,6 +61,12 @@ impl HeapRef for GuidRef {
 
     fn index(&self) -> usize {
         self.0
+    }
+}
+
+impl GuidRef {
+    pub fn get<'a>(&self, heap: &'a GuidHeap) -> Result<&'a Guid, Error> {
+        heap.get(self.0)
     }
 }
 

@@ -26,7 +26,7 @@ pub enum Error {
     StreamNotFound,
 
     /// The metadata file is invalid in an unexpected way.
-    InvalidMetadata,
+    InvalidMetadata(&'static str),
 
     /// An invalid heap reference was provided.
     InvalidHeapReference,
