@@ -10,7 +10,7 @@ pub struct MetadataReader<'a> {
     metadata_sizes: MetadataSizes,
     string_heap: StringHeap<'a>,
     guid_heap: GuidHeap<'a>,
-    module_table_data: Option<&'a [u8]>,
+    table_data: Vec<Option<&'a [u8]>>,
 }
 
 impl<'a> MetadataReader<'a> {
@@ -55,14 +55,16 @@ impl<'a> MetadataReader<'a> {
         let sizes = MetadataSizes::read(&mut cursor)?;
 
         // Get the position of the cursor and re-slice the data to get the rows
-        let mut rows = &metadata_stream[cursor.position() as usize..];
+        let rows = &metadata_stream[cursor.position() as usize..];
+
+        let table_data = load_tables(rows, &sizes);
 
         Ok(MetadataReader {
             metadata_header: metadata_header,
             metadata_sizes: sizes,
             string_heap: string_heap,
             guid_heap: guid_heap,
-            module_table_data: get_table_data::<tables::Module>(&mut rows, &sizes)?,
+            table_data: table_data,
         })
     }
 
@@ -75,11 +77,12 @@ impl<'a> MetadataReader<'a> {
     }
 
     pub fn module_table(&'a self) -> Table<'a, tables::Module> {
-        if let Some(ref data) = self.module_table_data {
-            Table::new(data, &self.metadata_sizes)
-        } else {
-            Table::empty()
-        }
+        unimplemented!()
+        // if let Some(ref data) = self.module_table_data {
+        //     Table::new(data, &self.metadata_sizes)
+        // } else {
+        //     Table::empty()
+        // }
     }
 
     pub fn string_heap(&self) -> &StringHeap<'a> {
@@ -89,6 +92,10 @@ impl<'a> MetadataReader<'a> {
     pub fn guid_heap(&self) -> &GuidHeap<'a> {
         &self.guid_heap
     }
+}
+
+fn load_tables<'a>(mut rows: &'a [u8], sizes: &MetadataSizes) -> Vec<Option<&'a [u8]>> {
+    unimplemented!()
 }
 
 fn get_table_data<'a, T: TableRow>(
