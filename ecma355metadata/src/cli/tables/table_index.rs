@@ -2,6 +2,8 @@
 #![allow(non_upper_case_globals)]
 
 use std::mem;
+use std::str::FromStr;
+use error::Error;
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
@@ -59,6 +61,69 @@ pub enum TableIndex {
     ImportScope = 0x35,
     StateMachineMethod = 0x36,
     CustomDebugInformation = 0x37,
+}
+
+impl FromStr for TableIndex {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<TableIndex, Error> {
+        Ok(match s {
+            "Module" => TableIndex::Module,
+            "TypeRef" => TableIndex::TypeRef,
+            "TypeDef" => TableIndex::TypeDef,
+            "FieldPtr" => TableIndex::FieldPtr,
+            "Field" => TableIndex::Field,
+            "MethodPtr" => TableIndex::MethodPtr,
+            "MethodDef" => TableIndex::MethodDef,
+            "ParamPtr" => TableIndex::ParamPtr,
+            "Param" => TableIndex::Param,
+            "InterfaceImpl" => TableIndex::InterfaceImpl,
+            "MemberRef" => TableIndex::MemberRef,
+            "Constant" => TableIndex::Constant,
+            "CustomAttribute" => TableIndex::CustomAttribute,
+            "FieldMarshal" => TableIndex::FieldMarshal,
+            "DeclSecurity" => TableIndex::DeclSecurity,
+            "ClassLayout" => TableIndex::ClassLayout,
+            "FieldLayout" => TableIndex::FieldLayout,
+            "StandAloneSig" => TableIndex::StandAloneSig,
+            "EventMap" => TableIndex::EventMap,
+            "EventPtr" => TableIndex::EventPtr,
+            "Event" => TableIndex::Event,
+            "PropertyMap" => TableIndex::PropertyMap,
+            "PropertyPtr" => TableIndex::PropertyPtr,
+            "Property" => TableIndex::Property,
+            "MethodSemantics" => TableIndex::MethodSemantics,
+            "MethodImpl" => TableIndex::MethodImpl,
+            "ModuleRef" => TableIndex::ModuleRef,
+            "TypeSpec" => TableIndex::TypeSpec,
+            "ImplMap" => TableIndex::ImplMap,
+            "FieldRva" => TableIndex::FieldRva,
+            "EncLog" => TableIndex::EncLog,
+            "EncMap" => TableIndex::EncMap,
+            "Assembly" => TableIndex::Assembly,
+            "AssemblyProcessor" => TableIndex::AssemblyProcessor,
+            "AssemblyOS" => TableIndex::AssemblyOS,
+            "AssemblyRef" => TableIndex::AssemblyRef,
+            "AssemblyRefProcessor" => TableIndex::AssemblyRefProcessor,
+            "AssemblyRefOS" => TableIndex::AssemblyRefOS,
+            "File" => TableIndex::File,
+            "ExportedType" => TableIndex::ExportedType,
+            "ManifestResource" => TableIndex::ManifestResource,
+            "NestedClass" => TableIndex::NestedClass,
+            "GenericParam" => TableIndex::GenericParam,
+            "MethodSpec" => TableIndex::MethodSpec,
+            "GenericParamConstraint" => TableIndex::GenericParamConstraint,
+            "Document" => TableIndex::Document,
+            "MethodDebugInformation" => TableIndex::MethodDebugInformation,
+            "LocalScope" => TableIndex::LocalScope,
+            "LocalVariable" => TableIndex::LocalVariable,
+            "LocalConstant" => TableIndex::LocalConstant,
+            "ImportScope" => TableIndex::ImportScope,
+            "StateMachineMethod" => TableIndex::StateMachineMethod,
+            "CustomDebugInformation" => TableIndex::CustomDebugInformation,
+            _ => return Err(Error::UnknownTableName)
+        })
+    }
 }
 
 impl ::std::fmt::Display for TableIndex {
@@ -163,6 +228,13 @@ bitflags! {
         const ImportScope = 1 << TableIndex::ImportScope as u64;
         const StateMachineMethod = 1 << TableIndex::StateMachineMethod as u64;
         const CustomDebugInformation = 1 << TableIndex::CustomDebugInformation as u64;
+
+        // Coded Indexes
+        const ResolutionScope =
+            TableMask::Module.bits | 
+            TableMask::ModuleRef.bits | 
+            TableMask::AssemblyRef.bits | 
+            TableMask::TypeRef.bits;
     }
 }
 

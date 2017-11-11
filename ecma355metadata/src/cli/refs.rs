@@ -45,7 +45,7 @@ impl HeapRef for StringRef {
 }
 
 impl StringRef {
-    pub fn get<'a>(&self, heap: &'a StringHeap) -> Result<&'a str, Error> {
+    pub fn get<'a>(&self, heap: &'a StringHeap) -> Option<&'a [u8]> {
         heap.get(self.0)
     }
 }
@@ -65,7 +65,7 @@ impl HeapRef for GuidRef {
 }
 
 impl GuidRef {
-    pub fn get<'a>(&self, heap: &'a GuidHeap) -> Result<&'a Guid, Error> {
+    pub fn get<'a>(&self, heap: &'a GuidHeap) -> Option<&'a Guid> {
         heap.get(self.0)
     }
 }

@@ -15,19 +15,19 @@ impl<'a> GuidHeap<'a> {
         GuidHeap { data: None }
     }
 
-    pub fn get(&self, idx: usize) -> Result<&Guid, Error> {
+    pub fn get(&self, idx: usize) -> Option<&Guid> {
         if let Some(data) = self.data {
             // Determine the offset into the GUID array
             let offset = idx / 16;
 
             // Bounds check
-            if offset >= data.len() {
-                Err(Error::InvalidHeapReference)
+            if offset == 0 || offset >= data.len() {
+                None
             } else {
-                Ok(&data[offset])
+                Some(&data[offset])
             }
         } else {
-            Err(Error::InvalidHeapReference)
+            None
         }
     }
 }

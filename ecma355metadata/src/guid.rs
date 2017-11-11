@@ -3,12 +3,16 @@ use std::fmt::{Display, Error, Formatter};
 #[derive(Clone, Copy)]
 pub struct Guid([u8; 16]);
 
+impl Guid {
+    pub const EMPTY: Guid = Guid([0u8; 16]);
+}
+
 impl Display for Guid {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         let &Guid(ref values) = self;
         write!(
             f,
-            "{{{:X}{:X}{:X}{:X}-{:X}{:X}-{:X}{:X}-{:X}{:X}-{:X}{:X}{:X}{:X}{:X}{:X}}}",
+            "{{{:02X}{:02X}{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}}}",
             values[0],
             values[1],
             values[2],

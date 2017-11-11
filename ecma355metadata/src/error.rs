@@ -30,6 +30,9 @@ pub enum Error {
 
     /// An invalid heap reference was provided.
     InvalidHeapReference,
+
+    /// The provided table name was not recognized
+    UnknownTableName,
 }
 
 impl From<::std::io::Error> for Error {

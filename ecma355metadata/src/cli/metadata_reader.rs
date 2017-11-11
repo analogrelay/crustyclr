@@ -79,7 +79,7 @@ impl<'a> MetadataReader<'a> {
     pub fn table<'b, T: TableRow>(&'b self) -> Table<'b, T> {
         let idx = T::INDEX as usize;
         if idx > self.table_data.len() {
-            Table::empty()
+            panic!("Table not yet implemented: {}", idx);
         } else if let Some(ref data) = self.table_data[idx] {
             Table::new(data, &self.metadata_sizes)
         } else {
@@ -99,6 +99,7 @@ impl<'a> MetadataReader<'a> {
 fn load_tables<'a>(mut rows: &'a [u8], sizes: &MetadataSizes) -> Vec<Option<&'a [u8]>> {
     let mut tables = Vec::new();
     tables.push(get_table_data::<tables::Module>(&mut rows, sizes));
+    tables.push(get_table_data::<tables::TypeRef>(&mut rows, sizes));
 
     tables
 }
