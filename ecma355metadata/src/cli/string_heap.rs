@@ -1,8 +1,6 @@
 use std::ffi::CStr;
 use std::mem;
 
-use error::Error;
-
 pub struct StringHeap<'a> {
     data: Option<&'a [u8]>,
 }

@@ -3,11 +3,10 @@ use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{GuidHeap, HeapSizes, MetadataSizes, StringHeap};
+use cli::{HeapSizes, MetadataSizes};
 use error::Error;
-use Guid;
 
-pub trait HeapRef: Sized {
+pub trait HeapHandle: Sized {
     const SIZE_FLAG: HeapSizes;
 
     fn new(index: usize) -> Self;
@@ -30,13 +29,13 @@ pub trait HeapRef: Sized {
     }
 }
 
-pub struct StringRef(usize);
+pub struct StringHandle(usize);
 
-impl HeapRef for StringRef {
+impl HeapHandle for StringHandle {
     const SIZE_FLAG: HeapSizes = HeapSizes::LARGE_STRINGS;
 
-    fn new(index: usize) -> StringRef {
-        StringRef(index)
+    fn new(index: usize) -> StringHandle {
+        StringHandle(index)
     }
 
     fn index(&self) -> usize {
@@ -44,19 +43,13 @@ impl HeapRef for StringRef {
     }
 }
 
-impl StringRef {
-    pub fn get<'a>(&self, heap: &'a StringHeap) -> Option<&'a [u8]> {
-        heap.get(self.0)
-    }
-}
+pub struct GuidHandle(usize);
 
-pub struct GuidRef(usize);
-
-impl HeapRef for GuidRef {
+impl HeapHandle for GuidHandle {
     const SIZE_FLAG: HeapSizes = HeapSizes::LARGE_GUIDS;
 
-    fn new(index: usize) -> GuidRef {
-        GuidRef(index)
+    fn new(index: usize) -> GuidHandle {
+        GuidHandle(index)
     }
 
     fn index(&self) -> usize {
@@ -64,19 +57,13 @@ impl HeapRef for GuidRef {
     }
 }
 
-impl GuidRef {
-    pub fn get<'a>(&self, heap: &'a GuidHeap) -> Option<&'a Guid> {
-        heap.get(self.0)
-    }
-}
+pub struct BlobHandle(usize);
 
-pub struct BlobRef(usize);
-
-impl HeapRef for BlobRef {
+impl HeapHandle for BlobHandle {
     const SIZE_FLAG: HeapSizes = HeapSizes::LARGE_BLOBS;
 
-    fn new(index: usize) -> BlobRef {
-        BlobRef(index)
+    fn new(index: usize) -> BlobHandle {
+        BlobHandle(index)
     }
 
     fn index(&self) -> usize {

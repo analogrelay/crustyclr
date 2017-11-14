@@ -1,5 +1,3 @@
-use error::Error;
-
 use Guid;
 
 pub struct GuidHeap<'a> {

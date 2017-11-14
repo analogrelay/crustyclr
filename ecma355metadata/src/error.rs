@@ -33,6 +33,9 @@ pub enum Error {
 
     /// The provided table name was not recognized
     UnknownTableName,
+
+    /// The Coded Index data was invalid
+    InvalidCodedIndex,
 }
 
 impl From<::std::io::Error> for Error {

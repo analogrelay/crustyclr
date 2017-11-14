@@ -3,16 +3,16 @@ use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{GuidRef, HeapRef, MetadataSizes, StringRef};
+use cli::{GuidHandle, HeapHandle, MetadataSizes, StringHandle};
 use cli::tables::{TableIndex, TableRow};
 use error::Error;
 
 pub struct Module {
     pub generation: u16,
-    pub name: StringRef,
-    pub mvid: GuidRef,
-    pub enc_id: GuidRef,
-    pub enc_base_id: GuidRef,
+    pub name: StringHandle,
+    pub mvid: GuidHandle,
+    pub enc_id: GuidHandle,
+    pub enc_base_id: GuidHandle,
 }
 
 impl TableRow for Module {
@@ -21,15 +21,15 @@ impl TableRow for Module {
     fn read<R: Read>(reader: &mut R, sizes: &MetadataSizes) -> Result<Module, Error> {
         Ok(Module {
             generation: reader.read_u16::<LittleEndian>()?,
-            name: StringRef::read(reader, sizes)?,
-            mvid: GuidRef::read(reader, sizes)?,
-            enc_id: GuidRef::read(reader, sizes)?,
-            enc_base_id: GuidRef::read(reader, sizes)?,
+            name: StringHandle::read(reader, sizes)?,
+            mvid: GuidHandle::read(reader, sizes)?,
+            enc_id: GuidHandle::read(reader, sizes)?,
+            enc_base_id: GuidHandle::read(reader, sizes)?,
         })
     }
 
     fn row_size(sizes: &MetadataSizes) -> usize {
-        size_of::<u16>() + StringRef::size(sizes) + GuidRef::size(sizes) + GuidRef::size(sizes)
-            + GuidRef::size(sizes)
+        size_of::<u16>() + StringHandle::size(sizes) + GuidHandle::size(sizes)
+            + GuidHandle::size(sizes) + GuidHandle::size(sizes)
     }
 }

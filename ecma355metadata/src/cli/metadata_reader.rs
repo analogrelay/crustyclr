@@ -1,9 +1,11 @@
 use std::io::Cursor;
 use std::mem;
 
-use cli::{GuidHeap, MetadataHeader, MetadataSizes, StreamHeader, StringHeap};
-use cli::tables::{self, Table, TableIndex, TableRow};
+use cli::{GuidHandle, GuidHeap, HeapHandle, MetadataHeader, MetadataSizes, StreamHeader,
+          StringHandle, StringHeap};
+use cli::tables::{self, Table, TableRow};
 use error::Error;
+use Guid;
 
 pub struct MetadataReader<'a> {
     metadata_header: MetadataHeader,
@@ -87,12 +89,12 @@ impl<'a> MetadataReader<'a> {
         }
     }
 
-    pub fn string_heap(&self) -> &StringHeap<'a> {
-        &self.string_heap
+    pub fn get_string(&self, handle: StringHandle) -> Option<&[u8]> {
+        self.string_heap.get(handle.index())
     }
 
-    pub fn guid_heap(&self) -> &GuidHeap<'a> {
-        &self.guid_heap
+    pub fn get_guid(&self, handle: GuidHandle) -> Option<&Guid> {
+        self.guid_heap.get(handle.index())
     }
 }
 
