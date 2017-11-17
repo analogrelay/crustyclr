@@ -72,12 +72,12 @@ pub fn dump_method_def_table(assembly: &MetadataReader) {
         let row = row.unwrap();
         let name = str::from_utf8(assembly.get_string(row.name).unwrap_or(b"<null>")).unwrap();
         println!(
-            " * {} @ 0x{:08X} (Sig: 0x{:04X}, Params: {}, Flags: 0x{:02X}, ImplFlags: 0x{:02X})",
+            " * {} @ 0x{:08X} ({}, Sig: 0x{:04X}, Params: {}, ImplFlags: 0x{:02X})",
             name,
             row.rva,
+            row.flags,
             row.signature.index(),
             row.params,
-            row.flags,
             row.impl_flags
         );
     }

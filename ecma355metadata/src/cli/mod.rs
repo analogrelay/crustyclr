@@ -9,6 +9,7 @@ mod guid_heap;
 mod metadata_sizes;
 mod type_attributes;
 mod field_attributes;
+mod method_attributes;
 
 pub mod tables;
 
@@ -24,5 +25,6 @@ pub use self::string_heap::StringHeap;
 pub use self::type_attributes::{TypeAttributes, TypeFlags, TypeLayout, TypeSemantics,
                                 TypeStringFormat, TypeVisibility};
 pub use self::field_attributes::{FieldAccess, FieldAttributes, FieldFlags};
+pub use self::method_attributes::{MethodAccess, MethodAttributes, MethodFlags, MethodVTableLayout};
 pub use self::metadata_sizes::{HeapSizes, MetadataSizes, LARGE_INDEX_SIZE, SMALL_INDEX_SIZE,
                                SMALL_TABLE_MAX_SIZE};

@@ -2,7 +2,8 @@ use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{BlobHandle, BlobHandleReader, MetadataSizes, StringHandle, StringHandleReader};
+use cli::{BlobHandle, BlobHandleReader, MetadataSizes, MethodAttributes, StringHandle,
+          StringHandleReader};
 use cli::tables::{TableHandle, TableHandleReader, TableIndex, TableReader};
 
 use error::Error;
@@ -10,7 +11,7 @@ use error::Error;
 pub struct MethodDef {
     pub rva: u32,
     pub impl_flags: u16,
-    pub flags: u16,
+    pub flags: MethodAttributes,
     pub name: StringHandle,
     pub signature: BlobHandle,
     pub params: TableHandle,
@@ -43,7 +44,7 @@ impl TableReader for MethodDefReader {
         Ok(MethodDef {
             rva: buf.read_u32::<LittleEndian>()?,
             impl_flags: buf.read_u16::<LittleEndian>()?,
-            flags: buf.read_u16::<LittleEndian>()?,
+            flags: MethodAttributes::new(buf.read_u16::<LittleEndian>()?),
             name: self.string_reader.read(&mut buf)?,
             signature: self.blob_reader.read(&mut buf)?,
             params: self.params_reader.read(&mut buf)?,
