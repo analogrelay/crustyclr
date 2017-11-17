@@ -11,6 +11,7 @@ mod metadata_sizes;
 mod type_attributes;
 mod field_attributes;
 mod method_attributes;
+mod method_impl_attributes;
 
 pub mod tables;
 
@@ -28,5 +29,6 @@ pub use self::type_attributes::{TypeAttributes, TypeFlags, TypeLayout, TypeSeman
                                 TypeStringFormat, TypeVisibility};
 pub use self::field_attributes::{FieldAttributes, FieldFlags};
 pub use self::method_attributes::{MethodAttributes, MethodFlags, MethodVTableLayout};
+pub use self::method_impl_attributes::{MethodCodeType, MethodImplAttributes, MethodImplFlags};
 pub use self::metadata_sizes::{HeapSizes, MetadataSizes, LARGE_INDEX_SIZE, SMALL_INDEX_SIZE,
                                SMALL_TABLE_MAX_SIZE};
