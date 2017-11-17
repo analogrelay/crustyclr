@@ -31,6 +31,7 @@ macro_rules! index_reader {
 mod module;
 mod type_ref;
 mod type_def;
+mod field;
 mod table;
 mod table_index;
 mod table_handle;
@@ -40,6 +41,7 @@ mod table_stream;
 pub use self::module::{Module, ModuleReader};
 pub use self::type_ref::{TypeRef, TypeRefReader};
 pub use self::type_def::{TypeDef, TypeDefReader};
+pub use self::field::{Field, FieldReader};
 pub use self::table::Table;
 pub use self::table_reader::TableReader;
 pub use self::table_index::{TableIndex, TableMask};

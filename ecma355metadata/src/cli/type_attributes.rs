@@ -43,18 +43,18 @@ impl TypeAttributes {
 impl ::std::fmt::Display for TypeAttributes {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
         if self.visibility() != TypeVisibility::NotPublic {
-            write!(f, "{} ", self.visibility());
+            write!(f, "{} ", self.visibility())?;
         }
 
         if self.string_format() != TypeStringFormat::Auto {
-            write!(f, "{} ", self.string_format());
+            write!(f, "{} ", self.string_format())?;
         }
 
         if self.layout() != TypeLayout::AutoLayout {
-            write!(f, "{} ", self.visibility());
+            write!(f, "{} ", self.visibility())?;
         }
 
-        write!(f, "{}", self.semantics());
+        write!(f, "{}", self.semantics())?;
 
         let flags = self.flags();
         if !flags.is_empty() {

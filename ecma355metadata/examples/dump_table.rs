@@ -47,6 +47,7 @@ pub fn main() {
                 TableIndex::Module => dump_module_table(&assembly),
                 TableIndex::TypeRef => dump_type_ref_table(&assembly),
                 TableIndex::TypeDef => dump_type_def_table(&assembly),
+                TableIndex::Field => dump_field_table(&assembly),
                 x => println!("Table not yet implemented: {}", x),
             }
         }
@@ -87,6 +88,18 @@ pub fn dump_type_def_table(assembly: &MetadataReader) {
         println!("({}, Extends: {}, Fields: {}, Methods: {})", row.flags, row.extends, row.field_list, row.method_list);
     }
     println!()
+}
+
+pub fn dump_field_table(assembly: &MetadataReader) {
+    let field_table = assembly.tables().field();
+    println!("Field Table: {} rows", field_table.len());
+    for row in field_table.iter() {
+        let row = row.unwrap();
+        println!(" * {} (Flags: 0x{:04X}, Signature: 0x{:X})", 
+                str::from_utf8(assembly.get_string(row.name).unwrap_or(b"<null>")).unwrap(),
+                row.flags,
+                row.signature.index());
+    }
 }
 
 pub fn dump_type_ref_table(assembly: &MetadataReader) {
