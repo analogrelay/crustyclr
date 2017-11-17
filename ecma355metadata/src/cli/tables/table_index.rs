@@ -126,11 +126,7 @@ impl FromStr for TableIndex {
     }
 }
 
-impl ::std::fmt::Display for TableIndex {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
-        write!(f, "{:?}", self)
-    }
-}
+impl_display_via_debug!(TableIndex);
 
 impl TableIndex {
     pub const MAX: usize = 0x37;
@@ -248,8 +244,4 @@ impl TableMask {
     }
 }
 
-impl ::std::fmt::Display for TableMask {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
-        write!(f, "{:?}", self)
-    }
-}
+impl_display_via_debug!(TableMask);

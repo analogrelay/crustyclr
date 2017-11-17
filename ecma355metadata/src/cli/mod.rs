@@ -7,6 +7,7 @@ mod heap_handle;
 mod string_heap;
 mod guid_heap;
 mod metadata_sizes;
+mod type_attributes;
 
 pub mod tables;
 
@@ -18,5 +19,6 @@ pub use self::metadata_reader::MetadataReader;
 pub use self::heap_handle::{BlobHandle, GuidHandle, StringHandle, StringHandleReader, GuidHandleReader, BlobHandleReader};
 pub use self::guid_heap::GuidHeap;
 pub use self::string_heap::StringHeap;
+pub use self::type_attributes::TypeAttributes;
 pub use self::metadata_sizes::{HeapSizes, MetadataSizes, LARGE_INDEX_SIZE, SMALL_INDEX_SIZE,
                                SMALL_TABLE_MAX_SIZE};

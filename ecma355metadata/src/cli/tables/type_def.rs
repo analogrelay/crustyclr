@@ -3,12 +3,12 @@ use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{MetadataSizes, StringHandle, StringHandleReader};
+use cli::{MetadataSizes, StringHandle, StringHandleReader, TypeAttributes};
 use cli::tables::{TableHandle, TableIndex, TableMask, TableReader, TableHandleReader};
 use error::Error;
 
 pub struct TypeDef {
-    pub flags: u32,
+    pub flags: TypeAttributes,
     pub type_name: StringHandle,
     pub type_namespace: StringHandle,
     pub extends: TableHandle,
@@ -52,7 +52,7 @@ impl TableReader for TypeDefReader {
         let mut cursor = Cursor::new(buf);
 
         Ok(TypeDef {
-            flags: cursor.read_u32::<LittleEndian>()?,
+            flags: TypeAttributes::new(cursor.read_u32::<LittleEndian>()?),
             type_name: self.string_reader.read(&mut cursor)?,
             type_namespace: self.string_reader.read(&mut cursor)?,
             extends: self.type_def_or_ref_reader.read(&mut cursor)?,

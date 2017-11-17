@@ -84,7 +84,7 @@ pub fn dump_type_def_table(assembly: &MetadataReader) {
             );
         }
 
-        println!("(Flags: 0x{:X}, Extends: {}, Fields: {}, Methods: {})", row.flags, row.extends, row.field_list, row.method_list);
+        println!("({}, Extends: {}, Fields: {}, Methods: {})", row.flags, row.extends, row.field_list, row.method_list);
     }
     println!()
 }

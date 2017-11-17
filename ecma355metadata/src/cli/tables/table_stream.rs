@@ -1,6 +1,12 @@
 use cli::MetadataSizes;
-use cli::tables::{self, Table, TableReader};
+use cli::tables::{self, Table, TableReader, TableIndex};
 use error::Error;
+
+macro_rules! skip_table {
+    ($sizes:expr, $idx:expr) => {
+       assert_eq!(0, $sizes.row_count($idx), "This assembly has a '{}' table, which is not yet supported", $idx);
+    };
+}
 
 pub struct TableStream<'a> {
     metadata_sizes: MetadataSizes,
@@ -16,6 +22,7 @@ impl<'a> TableStream<'a> {
         let module = load_table::<tables::ModuleReader>(&mut data, &sizes)?;
         let type_ref = load_table::<tables::TypeRefReader>(&mut data, &sizes)?;
         let type_def = load_table::<tables::TypeDefReader>(&mut data, &sizes)?;
+        skip_table!(sizes, TableIndex::FieldPtr);
 
         Ok(TableStream {
             metadata_sizes: sizes,

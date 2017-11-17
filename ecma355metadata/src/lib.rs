@@ -1,3 +1,14 @@
+// Macros go first because they are expanded in one pass, top-down.
+macro_rules! impl_display_via_debug {
+    ($typ:ty) => {
+        impl ::std::fmt::Display for $typ {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+                write!(f, "{:?}", self)
+            }
+        }
+    };
+}
+
 extern crate byteorder;
 
 #[macro_use]
