@@ -23,13 +23,10 @@ fn load_cli_header(pe: &PeImage) -> CliHeader {
 
 pub fn main() {
     let args: Vec<_> = env::args().collect();
-    if args.len() < 3 {
+    if args.len() < 2 {
         println!("Usage: dump_table <file> <table>");
     } else {
         let file_path = &args[1];
-        let table_name = &args[2];
-
-        let table: TableIndex = table_name.parse().expect("Unknown metadata table");
 
         let mut file = File::open(file_path).unwrap();
         let pe = PeImage::read(&mut file).unwrap();
@@ -39,11 +36,26 @@ pub fn main() {
                 .unwrap(),
         ).unwrap();
 
-        match table {
-            TableIndex::Module => dump_module_table(&assembly),
-            TableIndex::TypeRef => dump_type_ref_table(&assembly),
-            x => println!("Table not yet implemented: {}", x),
+        if args.len() < 3 {
+            dump_table_names(&assembly);
         }
+        else {
+            let table_name = &args[2];
+            let table: TableIndex = table_name.parse().expect("Unknown metadata table");
+
+            match table {
+                TableIndex::Module => dump_module_table(&assembly),
+                TableIndex::TypeRef => dump_type_ref_table(&assembly),
+                x => println!("Table not yet implemented: {}", x),
+            }
+        }
+    }
+}
+
+pub fn dump_table_names(assembly: &MetadataReader) {
+    println!("Table Row Counts:");
+    for idx in TableIndex::each() {
+        println!("  {}: {} rows", idx, assembly.tables().metadata_sizes().row_count(idx));
     }
 }
 

@@ -26,7 +26,7 @@ impl ::std::fmt::Display for HeapSizes {
 
 pub struct MetadataSizes {
     heap_sizes: HeapSizes,
-    row_counts: [usize; TableIndex::MAX],
+    row_counts: [usize; TableIndex::MAX + 1],
 }
 
 impl MetadataSizes {
@@ -45,7 +45,7 @@ impl MetadataSizes {
         let _sorted_mask = TableMask::from_bits_truncate(buf.read_u64::<LittleEndian>()?);
 
         // Load row counts
-        let mut row_counts = [0; TableIndex::MAX];
+        let mut row_counts = [0; TableIndex::MAX + 1];
         for idx in TableIndex::each() {
             if valid_mask.has_table(idx) {
                 let size = buf.read_u32::<LittleEndian>()?;
