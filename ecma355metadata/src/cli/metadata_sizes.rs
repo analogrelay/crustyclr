@@ -82,8 +82,6 @@ impl MetadataSizes {
     }
 
     pub fn coded_index_size(&self, tables: TableMask) -> usize {
-        // Probably want to cache this somewhere...
-
         let need_large_index = TableIndex::each()
             .filter(|&i| tables.has_table(i))
             .map(|i| self.index_size(i))

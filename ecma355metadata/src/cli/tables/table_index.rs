@@ -239,6 +239,10 @@ bitflags! {
 }
 
 impl TableMask {
+    pub fn from_index(val: TableIndex) -> TableMask {
+        TableMask::from_bits_truncate(1 << val as u64)
+    }
+
     pub fn has_table(&self, val: TableIndex) -> bool {
         self.bits & (1 << val as u64) != 0
     }
