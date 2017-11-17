@@ -6,6 +6,7 @@ pub struct TableStream<'a> {
     metadata_sizes: MetadataSizes,
     module: Table<'a, tables::ModuleReader>,
     type_ref: Table<'a, tables::TypeRefReader>,
+    type_def: Table<'a, tables::TypeDefReader>,
 }
 
 impl<'a> TableStream<'a> {
@@ -14,11 +15,13 @@ impl<'a> TableStream<'a> {
 
         let module = load_table::<tables::ModuleReader>(&mut data, &sizes)?;
         let type_ref = load_table::<tables::TypeRefReader>(&mut data, &sizes)?;
+        let type_def = load_table::<tables::TypeDefReader>(&mut data, &sizes)?;
 
         Ok(TableStream {
             metadata_sizes: sizes,
-            module: module,
-            type_ref: type_ref,
+            module,
+            type_ref,
+            type_def,
         })
     }
 
@@ -32,6 +35,10 @@ impl<'a> TableStream<'a> {
 
     pub fn type_ref(&self) -> &Table<'a, tables::TypeRefReader> {
         &self.type_ref
+    }
+
+    pub fn type_def(&self) -> &Table<'a, tables::TypeDefReader> {
+        &self.type_def
     }
 }
 

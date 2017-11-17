@@ -35,7 +35,16 @@ pub struct TableHandleReader  {
 }
 
 impl TableHandleReader {
-    pub fn new(is_large: bool, tables: TableMask, table_map: fn(usize) -> Option<TableIndex>) -> TableHandleReader {
+    pub fn for_simple_index(is_large: bool, table_map: fn(usize) -> Option<TableIndex>) -> TableHandleReader {
+        TableHandleReader {
+            is_large,
+            tag_mask: 0,
+            shift_distance: 0,
+            table_map,
+        }
+    }
+
+    pub fn for_coded_index(is_large: bool, tables: TableMask, table_map: fn(usize) -> Option<TableIndex>) -> TableHandleReader {
         assert!(tables.bits() != 0);
 
         // Calculate the tag mask and shift distance

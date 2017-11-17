@@ -46,6 +46,7 @@ pub fn main() {
             match table {
                 TableIndex::Module => dump_module_table(&assembly),
                 TableIndex::TypeRef => dump_type_ref_table(&assembly),
+                TableIndex::TypeDef => dump_type_def_table(&assembly),
                 x => println!("Table not yet implemented: {}", x),
             }
         }
@@ -57,6 +58,35 @@ pub fn dump_table_names(assembly: &MetadataReader) {
     for idx in TableIndex::each() {
         println!("  {}: {} rows", idx, assembly.tables().metadata_sizes().row_count(idx));
     }
+}
+
+pub fn dump_type_def_table(assembly: &MetadataReader) {
+    let type_def_table = assembly.tables().type_def();
+    println!("TypeDef Table: {} rows", type_def_table.len());
+    for row in type_def_table.iter() {
+        let row = row.unwrap();
+        let name = assembly.get_string(row.type_name).unwrap_or(b"<null>");
+        let namespace = assembly.get_string(row.type_namespace);
+
+        print!(" * ");
+
+
+        if let Some(ns) = namespace {
+            print!(
+                "{}.{} ",
+                str::from_utf8(ns).unwrap(),
+                str::from_utf8(name).unwrap(),
+            );
+        } else {
+            print!(
+                "{} ",
+                str::from_utf8(name).unwrap(),
+            );
+        }
+
+        println!("(Flags: 0x{:X}, Extends: {}, Fields: {}, Methods: {})", row.flags, row.extends, row.field_list, row.method_list);
+    }
+    println!()
 }
 
 pub fn dump_type_ref_table(assembly: &MetadataReader) {

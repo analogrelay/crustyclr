@@ -2,12 +2,9 @@
 // referenced here use it.
 macro_rules! index_reader {
     ($sizes:expr, $idx:expr) => {
-        TableHandleReader {
-            is_large: $sizes.index_size($idx),
-            tag_mask: 0,
-            shift_distance: 0,
-            table_map: |_| Some($idx)
-        }
+        TableHandleReader::for_simple_index(
+            $sizes.index_size($idx) == $crate::cli::LARGE_INDEX_SIZE,
+            |_| Some($idx))
     };
     (
         $sizes:expr, $(
@@ -18,7 +15,7 @@ macro_rules! index_reader {
             let tables = $(
                 TableMask::from_index($idx)
             )|+;
-            TableHandleReader::new(
+            TableHandleReader::for_coded_index(
                 $sizes.coded_index_size(tables) == $crate::cli::LARGE_INDEX_SIZE,
                 tables,
                 |tag| match tag {
@@ -33,6 +30,7 @@ macro_rules! index_reader {
 
 mod module;
 mod type_ref;
+mod type_def;
 mod table;
 mod table_index;
 mod table_handle;
@@ -41,6 +39,7 @@ mod table_stream;
 
 pub use self::module::{Module, ModuleReader};
 pub use self::type_ref::{TypeRef, TypeRefReader};
+pub use self::type_def::{TypeDef, TypeDefReader};
 pub use self::table::Table;
 pub use self::table_reader::TableReader;
 pub use self::table_index::{TableIndex, TableMask};
