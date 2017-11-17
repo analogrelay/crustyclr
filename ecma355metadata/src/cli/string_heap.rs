@@ -6,12 +6,10 @@ pub struct StringHeap<'a> {
 }
 
 impl<'a> StringHeap<'a> {
+    const EMPTY: StringHeap<'static> = StringHeap { data: None }
+
     pub fn new(data: &'a [u8]) -> StringHeap<'a> {
         StringHeap { data: Some(data) }
-    }
-
-    pub fn empty() -> StringHeap<'a> {
-        StringHeap { data: None }
     }
 
     pub fn get(&self, idx: usize) -> Option<&[u8]> {

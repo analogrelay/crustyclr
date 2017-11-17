@@ -1,3 +1,4 @@
+use error::Error;
 use Guid;
 
 pub struct GuidHeap<'a> {
@@ -5,12 +6,16 @@ pub struct GuidHeap<'a> {
 }
 
 impl<'a> GuidHeap<'a> {
-    pub fn new(data: &'a [Guid]) -> GuidHeap<'a> {
-        GuidHeap { data: Some(data) }
-    }
+    const EMPTY: GuidHeap<'static> = GuidHeap { data: None }
 
-    pub fn empty() -> GuidHeap<'a> {
-        GuidHeap { data: None }
+    pub fn new(data: &'a [Guid]) -> Result<GuidHeap<'a>, Error> {
+        // Make sure the data is a multiple of 16 in length
+        if data.len() % 16 != 0 {
+            return Err(Error::InvalidMetadata(
+                "GUID stream is not a multiple of 16 bytes in length.",
+            ));
+        }
+        Ok(GuidHeap { data: Some(unsafe { mem::transmute(data) }) })
     }
 
     pub fn get(&self, idx: usize) -> Option<&Guid> {
