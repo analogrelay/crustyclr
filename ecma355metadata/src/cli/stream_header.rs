@@ -1,4 +1,4 @@
-use std::io::{Read, Seek, SeekFrom};
+use std::io::{Read, Seek};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
@@ -19,9 +19,6 @@ impl StreamHeader {
         // Read no more than 32 nul-terminated bytes
         let name_bytes = read_nul_terminated_bytes(stream, 32)?;
         let name = String::from_utf8(name_bytes)?;
-
-        // Use Seek to get the current position
-        let current_file_pos = stream.seek(SeekFrom::Current(0))?;
 
         Ok(StreamHeader {
             offset: offset,

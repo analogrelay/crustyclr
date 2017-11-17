@@ -4,7 +4,7 @@ use std::fmt;
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use cli::{MetadataSizes, SMALL_INDEX_SIZE};
-use cli::tables::{TableIndex, TableMask};
+use cli::tables::TableIndex;
 use error::Error;
 
 pub struct TableHandle {

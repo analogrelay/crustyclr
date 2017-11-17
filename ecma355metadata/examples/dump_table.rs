@@ -7,7 +7,7 @@ use std::io::Cursor;
 
 use ecma355metadata::{MetadataReader, PeImage};
 use ecma355metadata::cli::CliHeader;
-use ecma355metadata::cli::tables::{Module, TableIndex, TypeRef};
+use ecma355metadata::cli::tables::TableIndex;
 use ecma355metadata::pe::DirectoryType;
 use ecma355metadata::Guid;
 
@@ -48,7 +48,7 @@ pub fn main() {
 }
 
 pub fn dump_type_ref_table(assembly: &MetadataReader) {
-    let type_ref_table = assembly.table::<TypeRef>();
+    let type_ref_table = assembly.tables().type_ref();
     println!("TypeRef Table: {} rows", type_ref_table.len());
     for row in type_ref_table.iter() {
         let row = row.unwrap();
@@ -74,7 +74,7 @@ pub fn dump_type_ref_table(assembly: &MetadataReader) {
 }
 
 pub fn dump_module_table(assembly: &MetadataReader) {
-    let module_table = assembly.table::<Module>();
+    let module_table = assembly.tables().module();
 
     println!("Module Table: {} rows", module_table.len());
     for row in module_table.iter() {

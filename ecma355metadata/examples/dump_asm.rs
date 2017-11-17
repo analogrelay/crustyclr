@@ -63,8 +63,8 @@ pub fn main() {
             assembly.metadata_header().version
         );
         println!("  Flags: 0x{:04X}", assembly.metadata_header().flags);
-        println!("  HeapSizes: {}", assembly.metadata_sizes().heap_sizes());
         println!("  Stream Count: {}", assembly.metadata_header().streams);
+        println!("  HeapSizes: {}", assembly.tables().metadata_sizes().heap_sizes());
         println!();
 
         // println!("Streams:");

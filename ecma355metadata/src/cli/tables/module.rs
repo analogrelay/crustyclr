@@ -1,10 +1,10 @@
-use std::io::{Read, Cursor};
+use std::io::Cursor;
 use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{GuidHandle, HeapHandle, MetadataSizes, StringHandle, StringHandleReader, GuidHandleReader};
-use cli::tables::{TableIndex, TableRow};
+use cli::{GuidHandle, MetadataSizes, StringHandle, StringHandleReader, GuidHandleReader};
+use cli::tables::{TableIndex, TableReader};
 use error::Error;
 
 pub struct Module {
@@ -17,7 +17,7 @@ pub struct Module {
 
 pub struct ModuleReader {
     string_reader: StringHandleReader,
-    guid_reader: StringHandleReader,
+    guid_reader: GuidHandleReader,
 }
 
 impl TableReader for ModuleReader {
@@ -38,13 +38,13 @@ impl TableReader for ModuleReader {
     }
     
     fn read(&self, buf: &[u8]) -> Result<Module, Error> {
-        let cursor = Cursor::new(buf);
+        let mut cursor = Cursor::new(buf);
         Ok(Module {
-            generation: reader.read_u16::<LittleEndian>()?,
-            name: self.string_reader.read(reader, sizes)?,
-            mvid: self.guid_reader.read(reader, sizes)?,
-            enc_id: self.guid_reader.read(reader, sizes)?,
-            enc_base_id: self.guid_reader.read(reader, sizes)?,
+            generation: cursor.read_u16::<LittleEndian>()?,
+            name: self.string_reader.read(&mut cursor)?,
+            mvid: self.guid_reader.read(&mut cursor)?,
+            enc_id: self.guid_reader.read(&mut cursor)?,
+            enc_base_id: self.guid_reader.read(&mut cursor)?,
         })
     }
 }

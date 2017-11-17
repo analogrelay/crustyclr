@@ -1,9 +1,8 @@
 use std::io::Cursor;
-use std::mem;
 
-use cli::{GuidHandle, GuidHeap, HeapHandle, MetadataHeader, MetadataSizes, StreamHeader,
+use cli::{GuidHandle, GuidHeap, MetadataHeader, StreamHeader,
           StringHandle, StringHeap};
-use cli::tables::{self, TableStream}
+use cli::tables::TableStream;
 use error::Error;
 use Guid;
 
@@ -21,7 +20,7 @@ impl<'a> MetadataReader<'a> {
 
         let metadata_header = MetadataHeader::read(&mut cursor)?;
 
-        let mut table_stream = TableStream::EMPTY;
+        let mut table_stream = None;
         let mut string_heap = StringHeap::EMPTY;
         let mut guid_heap = GuidHeap::EMPTY;
         for _ in 0..metadata_header.streams {
@@ -29,7 +28,7 @@ impl<'a> MetadataReader<'a> {
             let start = header.offset as usize;
             let end = start + (header.size as usize);
             match header.name.as_str() {
-                "#~" => table_stream = TableStream::new(&data[start..end])?,
+                "#~" => table_stream = Some(TableStream::new(&data[start..end])?),
                 "#Strings" => string_heap = StringHeap::new(&data[start..end]),
                 "#GUID" => guid_heap = GuidHeap::new(&data[start..end])?,
                 _ => {}
@@ -40,7 +39,7 @@ impl<'a> MetadataReader<'a> {
             metadata_header: metadata_header,
             string_heap: string_heap,
             guid_heap: guid_heap,
-            tables: table_stream,
+            tables: table_stream.ok_or(Error::InvalidMetadata("No table stream was present"))?,
         })
     }
 

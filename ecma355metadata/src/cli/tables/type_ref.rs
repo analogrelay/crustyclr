@@ -1,9 +1,9 @@
-use std::io::Read;
+use std::io::Cursor;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{HeapHandle, MetadataSizes, StringHandle, LARGE_INDEX_SIZE};
-use cli::tables::{TableHandle, TableIndex, TableMask, TableRow};
+use cli::{MetadataSizes, StringHandle, StringHandleReader, LARGE_INDEX_SIZE};
+use cli::tables::{TableHandle, TableIndex, TableMask, TableReader};
 use error::Error;
 
 pub struct TypeRef {
@@ -12,15 +12,34 @@ pub struct TypeRef {
     pub namespace: StringHandle,
 }
 
-impl TableRow for TypeRef {
+pub struct TypeRefReader {
+    resolution_scope_size: usize,
+    string_reader: StringHandleReader,
+}
+
+impl TableReader for TypeRefReader {
+    type Item = TypeRef;
     const INDEX: TableIndex = TableIndex::TypeRef;
 
-    fn read<R: Read>(reader: &mut R, sizes: &MetadataSizes) -> Result<TypeRef, Error> {
+    fn new(sizes: &MetadataSizes) -> TypeRefReader {
+        TypeRefReader {
+            resolution_scope_size: sizes.coded_index_size(TableMask::ResolutionScope),
+            string_reader: StringHandleReader::new(sizes),
+        }
+    }
+
+    fn row_size(&self) -> usize {
+        self.resolution_scope_size + (2 * self.string_reader.size())
+    }
+
+    fn read(&self, buf: &[u8]) -> Result<TypeRef, Error> {
+        let mut cursor = Cursor::new(buf);
+
         let resolution_scope =
-            if sizes.coded_index_size(TableMask::ResolutionScope) == LARGE_INDEX_SIZE {
-                reader.read_u32::<LittleEndian>()? as usize
+            if self.resolution_scope_size == LARGE_INDEX_SIZE {
+                cursor.read_u32::<LittleEndian>()? as usize
             } else {
-                reader.read_u16::<LittleEndian>()? as usize
+                cursor.read_u16::<LittleEndian>()? as usize
             };
 
         // Mask off the bottom two bits
@@ -37,13 +56,8 @@ impl TableRow for TypeRef {
 
         Ok(TypeRef {
             resolution_scope: TableHandle::new(index, table),
-            name: StringHandle::read(reader, sizes)?,
-            namespace: StringHandle::read(reader, sizes)?,
+            name: self.string_reader.read(&mut cursor)?,
+            namespace: self.string_reader.read(&mut cursor)?,
         })
-    }
-
-    fn row_size(sizes: &MetadataSizes) -> usize {
-        sizes.coded_index_size(TableMask::ResolutionScope) + StringHandle::size(sizes)
-            + StringHandle::size(sizes)
     }
 }

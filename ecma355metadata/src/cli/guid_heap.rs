@@ -1,3 +1,5 @@
+use std::mem;
+
 use error::Error;
 use Guid;
 
@@ -6,11 +8,11 @@ pub struct GuidHeap<'a> {
 }
 
 impl<'a> GuidHeap<'a> {
-    const EMPTY: GuidHeap<'static> = GuidHeap { data: None }
+    pub const EMPTY: GuidHeap<'static> = GuidHeap { data: None };
 
-    pub fn new(data: &'a [Guid]) -> Result<GuidHeap<'a>, Error> {
+    pub fn new(data: &'a [u8]) -> Result<GuidHeap<'a>, Error> {
         // Make sure the data is a multiple of 16 in length
-        if data.len() % 16 != 0 {
+        if data.len() % mem::size_of::<Guid>() != 0 {
             return Err(Error::InvalidMetadata(
                 "GUID stream is not a multiple of 16 bytes in length.",
             ));
