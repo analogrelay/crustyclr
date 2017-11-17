@@ -3,6 +3,8 @@
 
 use std::mem;
 
+use cli::Access;
+
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub struct MethodAttributes(u16);
 
@@ -11,9 +13,9 @@ impl MethodAttributes {
         MethodAttributes(value)
     }
 
-    pub fn access(self) -> MethodAccess {
+    pub fn access(self) -> Access {
         unsafe {
-            mem::transmute((self.0 & MethodAccess::MASK) >> MethodAccess::SHIFT)
+            mem::transmute((self.0 & Access::MASK) >> Access::SHIFT)
         }
     }
 
@@ -38,26 +40,6 @@ impl ::std::fmt::Display for MethodAttributes {
     }
 }
 
-MethodAccess and FieldAccess are the same value! They should be shared
-
-#[repr(u16)]
-#[derive(Debug, PartialEq, Eq)]
-pub enum MethodAccess {
-    CompilerControlled = 0,
-    Private = 1,
-    FamANDAssem = 2,
-    Assembly = 3,
-    Family = 4,
-    FamORAssem = 5,
-    Public = 6,
-}
-impl_display_via_debug!(MethodAccess);
-
-impl MethodAccess {
-    const MASK: u16 = 0x07;
-    const SHIFT: u16 = 0;
-}
-
 #[repr(u16)]
 #[derive(Debug, PartialEq, Eq)]
 pub enum MethodVTableLayout {
@@ -71,7 +53,7 @@ impl MethodVTableLayout {
     const SHIFT: u16 = 8;
 }
 
-const FLAGS_MASK: u16 = !(MethodAccess::MASK | MethodVTableLayout::MASK);
+const FLAGS_MASK: u16 = !(Access::MASK | MethodVTableLayout::MASK);
 
 bitflags! {
     pub struct MethodFlags : u16 {
