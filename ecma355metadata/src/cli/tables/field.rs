@@ -1,15 +1,15 @@
-use std::io::Cursor;
 use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use cli::tables::{TableIndex, TableReader};
-use cli::{StringHandle, BlobHandle, StringHandleReader, BlobHandleReader, MetadataSizes};
+use cli::{BlobHandle, BlobHandleReader, FieldAttributes, MetadataSizes, StringHandle,
+          StringHandleReader};
 
 use error::Error;
 
 pub struct Field {
-    pub flags: u16,
+    pub flags: FieldAttributes,
     pub name: StringHandle,
     pub signature: BlobHandle,
 }
@@ -31,18 +31,14 @@ impl TableReader for FieldReader {
     }
 
     fn row_size(&self) -> usize {
-        size_of::<u16>() +
-            self.string_reader.size() +
-            self.blob_reader.size()
+        size_of::<u16>() + self.string_reader.size() + self.blob_reader.size()
     }
 
-    fn read(&self, buf: &[u8]) -> Result<Field, Error> {
-        let mut cursor = Cursor::new(buf);
-
+    fn read(&self, mut buf: &[u8]) -> Result<Field, Error> {
         Ok(Field {
-            flags: cursor.read_u16::<LittleEndian>()?,
-            name: self.string_reader.read(&mut cursor)?,
-            signature: self.blob_reader.read(&mut cursor)?,
+            flags: FieldAttributes::new(buf.read_u16::<LittleEndian>()?),
+            name: self.string_reader.read(&mut buf)?,
+            signature: self.blob_reader.read(&mut buf)?,
         })
     }
 }

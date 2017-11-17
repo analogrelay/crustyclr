@@ -1,7 +1,5 @@
-use std::io::Cursor;
-
 use cli::{MetadataSizes, StringHandle, StringHandleReader};
-use cli::tables::{TableHandle, TableIndex, TableMask, TableReader, TableHandleReader};
+use cli::tables::{TableHandle, TableHandleReader, TableIndex, TableMask, TableReader};
 use error::Error;
 
 pub struct TypeRef {
@@ -34,13 +32,11 @@ impl TableReader for TypeRefReader {
         self.resolution_scope_reader.size() + (2 * self.string_reader.size())
     }
 
-    fn read(&self, buf: &[u8]) -> Result<TypeRef, Error> {
-        let mut cursor = Cursor::new(buf);
-
+    fn read(&self, mut buf: &[u8]) -> Result<TypeRef, Error> {
         Ok(TypeRef {
-            resolution_scope: self.resolution_scope_reader.read(&mut cursor)?,
-            name: self.string_reader.read(&mut cursor)?,
-            namespace: self.string_reader.read(&mut cursor)?,
+            resolution_scope: self.resolution_scope_reader.read(&mut buf)?,
+            name: self.string_reader.read(&mut buf)?,
+            namespace: self.string_reader.read(&mut buf)?,
         })
     }
 }

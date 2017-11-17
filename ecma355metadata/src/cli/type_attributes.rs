@@ -3,7 +3,7 @@
 
 use std::mem;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct TypeAttributes(u32);
 
 impl TypeAttributes {

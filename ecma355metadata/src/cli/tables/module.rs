@@ -1,9 +1,8 @@
-use std::io::Cursor;
 use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{GuidHandle, MetadataSizes, StringHandle, StringHandleReader, GuidHandleReader};
+use cli::{GuidHandle, GuidHandleReader, MetadataSizes, StringHandle, StringHandleReader};
 use cli::tables::{TableIndex, TableReader};
 use error::Error;
 
@@ -27,24 +26,21 @@ impl TableReader for ModuleReader {
     fn new(sizes: &MetadataSizes) -> ModuleReader {
         ModuleReader {
             string_reader: StringHandleReader::new(sizes),
-            guid_reader: GuidHandleReader::new(sizes)
+            guid_reader: GuidHandleReader::new(sizes),
         }
     }
 
     fn row_size(&self) -> usize {
-        size_of::<u16>() + 
-            self.string_reader.size() + 
-            (3 * self.guid_reader.size())
+        size_of::<u16>() + self.string_reader.size() + (3 * self.guid_reader.size())
     }
-    
-    fn read(&self, buf: &[u8]) -> Result<Module, Error> {
-        let mut cursor = Cursor::new(buf);
+
+    fn read(&self, mut buf: &[u8]) -> Result<Module, Error> {
         Ok(Module {
-            generation: cursor.read_u16::<LittleEndian>()?,
-            name: self.string_reader.read(&mut cursor)?,
-            mvid: self.guid_reader.read(&mut cursor)?,
-            enc_id: self.guid_reader.read(&mut cursor)?,
-            enc_base_id: self.guid_reader.read(&mut cursor)?,
+            generation: buf.read_u16::<LittleEndian>()?,
+            name: self.string_reader.read(&mut buf)?,
+            mvid: self.guid_reader.read(&mut buf)?,
+            enc_id: self.guid_reader.read(&mut buf)?,
+            enc_base_id: self.guid_reader.read(&mut buf)?,
         })
     }
 }

@@ -38,8 +38,7 @@ pub fn main() {
 
         if args.len() < 3 {
             dump_table_names(&assembly);
-        }
-        else {
+        } else {
             let table_name = &args[2];
             let table: TableIndex = table_name.parse().expect("Unknown metadata table");
 
@@ -48,6 +47,7 @@ pub fn main() {
                 TableIndex::TypeRef => dump_type_ref_table(&assembly),
                 TableIndex::TypeDef => dump_type_def_table(&assembly),
                 TableIndex::Field => dump_field_table(&assembly),
+                TableIndex::MethodDef => dump_method_def_table(&assembly),
                 x => println!("Table not yet implemented: {}", x),
             }
         }
@@ -57,7 +57,29 @@ pub fn main() {
 pub fn dump_table_names(assembly: &MetadataReader) {
     println!("Table Row Counts:");
     for idx in TableIndex::each() {
-        println!("  {}: {} rows", idx, assembly.tables().metadata_sizes().row_count(idx));
+        println!(
+            "  {}: {} rows",
+            idx,
+            assembly.tables().metadata_sizes().row_count(idx)
+        );
+    }
+}
+
+pub fn dump_method_def_table(assembly: &MetadataReader) {
+    let method_def_table = assembly.tables().method_def();
+    println!("MethodDef Table: {} rows", method_def_table.len());
+    for row in method_def_table.iter() {
+        let row = row.unwrap();
+        let name = str::from_utf8(assembly.get_string(row.name).unwrap_or(b"<null>")).unwrap();
+        println!(
+            " * {} @ 0x{:08X} (Sig: 0x{:04X}, Params: {}, Flags: 0x{:02X}, ImplFlags: 0x{:02X})",
+            name,
+            row.rva,
+            row.signature.index(),
+            row.params,
+            row.flags,
+            row.impl_flags
+        );
     }
 }
 
@@ -79,13 +101,16 @@ pub fn dump_type_def_table(assembly: &MetadataReader) {
                 str::from_utf8(name).unwrap(),
             );
         } else {
-            print!(
-                "{} ",
-                str::from_utf8(name).unwrap(),
-            );
+            print!("{} ", str::from_utf8(name).unwrap(),);
         }
 
-        println!("({}, Extends: {}, Fields: {}, Methods: {})", row.flags, row.extends, row.field_list, row.method_list);
+        println!(
+            "({}, Extends: {}, Fields: {}, Methods: {})",
+            row.flags,
+            row.extends,
+            row.field_list,
+            row.method_list
+        );
     }
     println!()
 }
@@ -95,10 +120,12 @@ pub fn dump_field_table(assembly: &MetadataReader) {
     println!("Field Table: {} rows", field_table.len());
     for row in field_table.iter() {
         let row = row.unwrap();
-        println!(" * {} (Flags: 0x{:04X}, Signature: 0x{:X})", 
-                str::from_utf8(assembly.get_string(row.name).unwrap_or(b"<null>")).unwrap(),
-                row.flags,
-                row.signature.index());
+        println!(
+            " * {} ({}, Signature: 0x{:X})",
+            str::from_utf8(assembly.get_string(row.name).unwrap_or(b"<null>")).unwrap(),
+            row.flags,
+            row.signature.index()
+        );
     }
 }
 

@@ -1,4 +1,3 @@
-use std::io::Cursor;
 use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -48,16 +47,14 @@ impl TableReader for TypeDefReader {
             self.method_list_reader.size()
     }
 
-    fn read(&self, buf: &[u8]) -> Result<TypeDef, Error> {
-        let mut cursor = Cursor::new(buf);
-
+    fn read(&self, mut buf: &[u8]) -> Result<TypeDef, Error> {
         Ok(TypeDef {
-            flags: TypeAttributes::new(cursor.read_u32::<LittleEndian>()?),
-            type_name: self.string_reader.read(&mut cursor)?,
-            type_namespace: self.string_reader.read(&mut cursor)?,
-            extends: self.type_def_or_ref_reader.read(&mut cursor)?,
-            field_list: self.field_list_reader.read(&mut cursor)?,
-            method_list: self.method_list_reader.read(&mut cursor)?,
+            flags: TypeAttributes::new(buf.read_u32::<LittleEndian>()?),
+            type_name: self.string_reader.read(&mut buf)?,
+            type_namespace: self.string_reader.read(&mut buf)?,
+            extends: self.type_def_or_ref_reader.read(&mut buf)?,
+            field_list: self.field_list_reader.read(&mut buf)?,
+            method_list: self.method_list_reader.read(&mut buf)?,
         })
     }
 }

@@ -14,6 +14,7 @@ pub struct TableStream<'a> {
     type_ref: Table<'a, tables::TypeRefReader>,
     type_def: Table<'a, tables::TypeDefReader>,
     field: Table<'a, tables::FieldReader>,
+    method_def: Table<'a, tables::MethodDefReader>,
 }
 
 impl<'a> TableStream<'a> {
@@ -25,6 +26,8 @@ impl<'a> TableStream<'a> {
         let type_def = load_table::<tables::TypeDefReader>(&mut data, &sizes)?;
         skip_table!(sizes, TableIndex::FieldPtr);
         let field = load_table::<tables::FieldReader>(&mut data, &sizes)?;
+        skip_table!(sizes, TableIndex::MethodPtr);
+        let method_def = load_table::<tables::MethodDefReader>(&mut data, &sizes)?;
 
         Ok(TableStream {
             metadata_sizes: sizes,
@@ -32,6 +35,7 @@ impl<'a> TableStream<'a> {
             type_ref,
             type_def,
             field,
+            method_def,
         })
     }
 
@@ -53,6 +57,10 @@ impl<'a> TableStream<'a> {
 
     pub fn field(&self) -> &Table<'a, tables::FieldReader> {
         &self.field
+    }
+
+    pub fn method_def(&self) -> &Table<'a, tables::MethodDefReader> {
+        &self.method_def
     }
 }
 
