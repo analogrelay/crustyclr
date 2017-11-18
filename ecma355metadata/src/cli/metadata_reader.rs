@@ -1,7 +1,6 @@
 use std::io::Cursor;
 
-use cli::{GuidHandle, GuidHeap, MetadataHeader, StreamHeader,
-          StringHandle, StringHeap};
+use cli::{GuidHandle, GuidHeap, MetadataHeader, StreamHeader, StringHandle, StringHeap};
 use cli::tables::TableStream;
 use error::Error;
 use Guid;

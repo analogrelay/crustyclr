@@ -3,6 +3,8 @@
 
 use std::mem;
 
+use cli::Access;
+
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub struct FieldAttributes(u16);
 
@@ -11,9 +13,9 @@ impl FieldAttributes {
         FieldAttributes(value)
     }
 
-    pub fn access(self) -> FieldAccess {
+    pub fn access(self) -> Access {
         unsafe {
-            mem::transmute((self.0 & FieldAccess::MASK) >> FieldAccess::SHIFT)
+            mem::transmute((self.0 & Access::MASK) >> Access::SHIFT)
         }
     }
 
@@ -32,25 +34,7 @@ impl ::std::fmt::Display for FieldAttributes {
     }
 }
 
-#[repr(u16)]
-#[derive(Debug, PartialEq, Eq)]
-pub enum FieldAccess {
-    CompilerControlled = 0,
-    Private = 1,
-    FamANDAssem = 2,
-    Assembly = 3,
-    Family = 4,
-    FamORAssem = 5,
-    Public = 6,
-}
-impl_display_via_debug!(FieldAccess);
-
-impl FieldAccess {
-    const MASK: u16 = 0x07;
-    const SHIFT: u16 = 0;
-}
-
-const FLAGS_MASK: u16 = !(FieldAccess::MASK);
+const FLAGS_MASK: u16 = !(Access::MASK);
 
 bitflags! {
     pub struct FieldFlags : u16 {

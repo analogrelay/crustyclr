@@ -3,7 +3,7 @@ use std::fmt;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{SMALL_INDEX_SIZE, LARGE_INDEX_SIZE};
+use cli::{LARGE_INDEX_SIZE, SMALL_INDEX_SIZE};
 use cli::tables::{TableIndex, TableMask};
 use error::Error;
 
@@ -19,6 +19,14 @@ impl TableHandle {
             table: table,
         }
     }
+
+    pub fn table(&self) -> TableIndex {
+        self.table
+    }
+
+    pub fn index(&self) -> usize {
+        self.index
+    }
 }
 
 impl fmt::Display for TableHandle {
@@ -27,7 +35,7 @@ impl fmt::Display for TableHandle {
     }
 }
 
-pub struct TableHandleReader  {
+pub struct TableHandleReader {
     is_large: bool,
     tag_mask: usize,
     shift_distance: usize,
@@ -35,7 +43,10 @@ pub struct TableHandleReader  {
 }
 
 impl TableHandleReader {
-    pub fn for_simple_index(is_large: bool, table_map: fn(usize) -> Option<TableIndex>) -> TableHandleReader {
+    pub fn for_simple_index(
+        is_large: bool,
+        table_map: fn(usize) -> Option<TableIndex>,
+    ) -> TableHandleReader {
         TableHandleReader {
             is_large,
             tag_mask: 0,
@@ -44,7 +55,11 @@ impl TableHandleReader {
         }
     }
 
-    pub fn for_coded_index(is_large: bool, tables: TableMask, table_map: fn(usize) -> Option<TableIndex>) -> TableHandleReader {
+    pub fn for_coded_index(
+        is_large: bool,
+        tables: TableMask,
+        table_map: fn(usize) -> Option<TableIndex>,
+    ) -> TableHandleReader {
         assert!(tables.bits() != 0);
 
         // Calculate the tag mask and shift distance
@@ -75,12 +90,11 @@ impl TableHandleReader {
     }
 
     pub fn read<R: Read>(&self, reader: &mut R) -> Result<TableHandle, Error> {
-        let val =
-            if self.is_large {
-                reader.read_u32::<LittleEndian>()? as usize
-            } else {
-                reader.read_u16::<LittleEndian>()? as usize
-            };
+        let val = if self.is_large {
+            reader.read_u32::<LittleEndian>()? as usize
+        } else {
+            reader.read_u16::<LittleEndian>()? as usize
+        };
 
         let tag = val & self.tag_mask;
         let index = val >> self.shift_distance;

@@ -2,11 +2,12 @@ use std::io::Read;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use cli::{HeapSizes, MetadataSizes, SMALL_INDEX_SIZE, LARGE_INDEX_SIZE};
+use cli::{HeapSizes, MetadataSizes, LARGE_INDEX_SIZE, SMALL_INDEX_SIZE};
 use error::Error;
 
 macro_rules! handle_type {
     ($name:ident, $reader:ident, $size_flag:expr) => {
+        #[derive(Debug, Eq, PartialEq, Clone, Copy)]
         pub struct $name(usize);
 
         impl $name {
@@ -34,7 +35,7 @@ macro_rules! handle_type {
 
             pub fn size(&self) -> usize {
                 if self.0 {
-                    LARGE_INDEX_SIZE   
+                    LARGE_INDEX_SIZE
                 } else {
                     SMALL_INDEX_SIZE
                 }

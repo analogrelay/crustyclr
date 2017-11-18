@@ -48,6 +48,7 @@ pub fn main() {
                 TableIndex::TypeDef => dump_type_def_table(&assembly),
                 TableIndex::Field => dump_field_table(&assembly),
                 TableIndex::MethodDef => dump_method_def_table(&assembly),
+                TableIndex::Param => dump_param_table(&assembly),
                 x => println!("Table not yet implemented: {}", x),
             }
         }
@@ -62,6 +63,20 @@ pub fn dump_table_names(assembly: &MetadataReader) {
             idx,
             assembly.tables().metadata_sizes().row_count(idx)
         );
+    }
+}
+
+pub fn dump_param_table(assembly: &MetadataReader) {
+    let param_table = assembly.tables().param();
+    println!("Param Table: {} rows", param_table.len());
+    for row in param_table.iter() {
+        let row = row.unwrap();
+        let name = str::from_utf8(assembly.get_string(row.name).unwrap_or(b"<null>")).unwrap();
+        print!("* {} #{}", name, row.sequence);
+        if !row.flags.is_empty() {
+            print!(" ({})", row.flags);
+        }
+        println!();
     }
 }
 
