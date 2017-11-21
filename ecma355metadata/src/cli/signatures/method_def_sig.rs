@@ -32,7 +32,7 @@ impl MethodDefSig {
     }
 
     pub fn read<R: Read>(reader: &mut R) -> Result<MethodDefSig, Error> {
-        let header = SignatureHeader::new(reader.read_u8()?);
+        let _header = SignatureHeader::new(reader.read_u8()?);
         unimplemented!();
     }
 }

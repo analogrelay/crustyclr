@@ -5,21 +5,21 @@ use cli::signatures::utils;
 
 use error::Error;
 
-pub struct RetType {
+pub struct Param {
     pub modifiers: Vec<CustomModifier>,
     pub type_reference: TypeReference,
 }
 
-impl RetType {
-    pub fn new(modifiers: Vec<CustomModifier>, type_reference: TypeReference) -> RetType {
-        RetType {
+impl Param {
+    pub fn new(modifiers: Vec<CustomModifier>, type_reference: TypeReference) -> Param {
+        Param {
             modifiers,
             type_reference,
         }
     }
 
-    pub fn read<R: Read>(reader: &mut R) -> Result<RetType, Error> {
+    pub fn read<R: Read>(reader: &mut R) -> Result<Param, Error> {
         let (mods, typ) = utils::read_modifiers_and_type(reader)?;
-        Ok(RetType::new(mods, typ))
+        Ok(Param::new(mods, typ))
     }
 }

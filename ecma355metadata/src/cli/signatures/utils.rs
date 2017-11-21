@@ -2,10 +2,11 @@ use std::mem;
 use std::io::Read;
 
 use cli::tables::{TableHandle, TableIndex};
+use cli::signatures::{ArrayShape, CustomModifier, TypeReference, GenericInstType};
 
 use error::Error;
 
-// Utilities for reading, used by sub-classes
+// Utilities for reading, used by types within this module
 pub fn read_type_def_or_ref_spec_encoded<R: Read>(reader: &mut R) -> Result<TableHandle, Error> {
     let val = read_compressed_u32(reader)?;
 
@@ -21,6 +22,95 @@ pub fn read_type_def_or_ref_spec_encoded<R: Read>(reader: &mut R) -> Result<Tabl
     Ok(TableHandle::new(index as usize, table))
 }
 
+pub fn read_type<R: Read>(discriminator: u32, reader: &mut R) -> Result<TypeReference, Error> {
+    match discriminator {
+        0x00 => Ok(TypeReference::End),
+        0x01 => Ok(TypeReference::Void),
+        0x02 => Ok(TypeReference::Boolean),
+        0x03 => Ok(TypeReference::Char),
+        0x04 => Ok(TypeReference::I1),
+        0x05 => Ok(TypeReference::U1),
+        0x06 => Ok(TypeReference::I2),
+        0x07 => Ok(TypeReference::U2),
+        0x08 => Ok(TypeReference::I4),
+        0x09 => Ok(TypeReference::U4),
+        0x0A => Ok(TypeReference::I8),
+        0x0B => Ok(TypeReference::U8),
+        0x0C => Ok(TypeReference::R4),
+        0x0D => Ok(TypeReference::R8),
+        0x0E => Ok(TypeReference::String),
+        0x0F => {
+            // Ptr
+            let (mods, typ) = read_modifiers_and_type(reader)?;
+            Ok(TypeReference::Ptr(mods, Box::new(typ)))
+        },
+        0x10 => Ok(TypeReference::ByRef(Box::new(TypeReference::read(reader)?))),
+        0x11 => {
+            // ValueType
+            let typ = read_type_def_or_ref_spec_encoded(reader)?;
+            Ok(TypeReference::ValueType(typ))
+        },
+        0x12 => {
+            // Class
+            let typ = read_type_def_or_ref_spec_encoded(reader)?;
+            Ok(TypeReference::Class(typ))
+        },
+        0x13 => Ok(TypeReference::Var(read_compressed_u32(reader)?)),
+        0x14 => {
+            // Array
+            let element_type = TypeReference::read(reader)?;
+            let shape = ArrayShape::read(reader)?;
+            Ok(TypeReference::Array(Box::new(element_type), shape))
+        },
+        0x15 => {
+            // GenericInst
+            let inst_type = match read_compressed_u32(reader)? {
+                0x11 => GenericInstType::ValueType,
+                0x12 => GenericInstType::Class,
+                _ => return Err(Error::InvalidMetadata("Invalid value following ELEMENT_TYPE_GENERIC_INST token."))
+            };
+            let typ = read_type_def_or_ref_spec_encoded(reader)?;
+            let arg_count = read_compressed_u32(reader)?;
+            let mut args = Vec::with_capacity(arg_count as usize);
+            for _ in 0..arg_count {
+                args.push(TypeReference::read(reader)?);
+            }
+            Ok(TypeReference::GenericInst(inst_type, typ, args))
+        },
+        0x16 => Ok(TypeReference::TypedByRef),
+        0x18 => Ok(TypeReference::I),
+        0x19 => Ok(TypeReference::U),
+        0x1B => unimplemented!(), // FnPtr
+        0x1C => Ok(TypeReference::Object),
+        0x1D => {
+            // SzArray
+            let (mods, typ) = read_modifiers_and_type(reader)?;
+            Ok(TypeReference::SzArray(mods, Box::new(typ)))
+        }
+        0x1E => Ok(TypeReference::MVar(read_compressed_u32(reader)?)),
+        x => Err(Error::UnknownTypeCode(x)),
+    }
+}
+
+pub fn read_modifiers_and_type<R: Read>(reader: &mut R) -> Result<(Vec<CustomModifier>, TypeReference), Error> {
+    let mut cur = read_compressed_u32(reader)?;
+    let mut mods = Vec::new();
+    while cur == 0x20 || cur == 0x1F {
+        let required = match cur {
+            0x20 => false,
+            0x1F => true,
+            _ => {
+                return Err(Error::InvalidMetadata(
+                    "Invalid CMOD value for Custom Modifier.",
+                ))
+            }
+        };
+        mods.push(CustomModifier::new(required, read_type_def_or_ref_spec_encoded(reader)?));
+        cur = read_compressed_u32(reader)?;
+    }
+    let typ = read_type(cur, reader)?;
+    Ok((mods, typ))
+}
 
 // From: https://source.dot.net/#System.Reflection.Metadata/System/Reflection/Metadata/BlobReader.cs,494
 pub fn read_compressed_u32<R: Read>(reader: &mut R) -> Result<u32, Error> {
