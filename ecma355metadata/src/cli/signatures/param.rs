@@ -1,3 +1,4 @@
+use std::fmt;
 use std::io::Read;
 
 use cli::signatures::{CustomModifier, TypeReference};
@@ -22,5 +23,12 @@ impl Param {
     pub fn read<R: Read>(reader: &mut R) -> Result<Param, Error> {
         let (mods, typ) = utils::read_modifiers_and_type(reader)?;
         Ok(Param::new(mods, typ))
+    }
+}
+
+impl fmt::Display for Param {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write_list!(f, self.modifiers.iter(), " ");
+        write!(f, "{}", self.type_reference)
     }
 }

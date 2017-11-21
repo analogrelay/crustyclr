@@ -1,3 +1,4 @@
+use std::fmt;
 use std::io::Read;
 
 use cli::tables::TableHandle;
@@ -39,6 +40,12 @@ impl ArrayShape {
     }
 }
 
+impl fmt::Display for ArrayShape {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        unimplemented!()
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum TypeReference {
     End,
@@ -76,6 +83,61 @@ pub enum TypeReference {
 impl TypeReference {
     pub fn read<R: Read>(reader: &mut R) -> Result<TypeReference, Error> {
         utils::read_type(utils::read_compressed_u32(reader)?, reader)
+    }
+}
+
+impl fmt::Display for TypeReference {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            TypeReference::End => write!(f, "!"),
+            TypeReference::Void => write!(f, "void"),
+            TypeReference::Boolean => write!(f, "boolean"),
+            TypeReference::Char => write!(f, "char"),
+            TypeReference::I1 => write!(f, "int8"),
+            TypeReference::U1 => write!(f, "unsigned int8"),
+            TypeReference::I2 => write!(f, "int16"),
+            TypeReference::U2 => write!(f, "unsigned int16"),
+            TypeReference::I4 => write!(f, "int32"),
+            TypeReference::U4 => write!(f, "unsigned int32"),
+            TypeReference::I8 => write!(f, "int64"),
+            TypeReference::U8 => write!(f, "unsigned int64"),
+            TypeReference::R4 => write!(f, "float32"),
+            TypeReference::R8 => write!(f, "float64"),
+            TypeReference::TypedByRef => write!(f, "TypedReference"),
+            TypeReference::I => write!(f, "native int"),
+            TypeReference::U => write!(f, "native unsigned int"),
+            TypeReference::Object => write!(f, "object"),
+            TypeReference::Sentinel => write!(f, "..."),
+            TypeReference::String => write!(f, "string"),
+            TypeReference::Ptr(ref modifiers, ref inner) => {
+                write_list!(f, modifiers, " ");
+                write!(f, "*{}", inner)
+            },
+            TypeReference::ByRef(ref inner) => write!(f, "ref {}", inner),
+            TypeReference::ValueType(ref handle) => write!(f, "struct({})", handle),
+            TypeReference::Class(ref handle) => write!(f, "class({})", handle),
+            TypeReference::Var(idx) => write!(f, "!!{}", idx),
+            TypeReference::MVar(idx) => write!(f, "!!{}", idx),
+            TypeReference::Array(ref inner, ref shape) => write!(f, "{}{}", inner, shape),
+            TypeReference::GenericInst(ref inner, ref types) => {
+                write!(f, "{}<", inner)?;
+                let mut first = true;
+                for typ in types {
+                    if first {
+                        first = false;
+                    } else {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", typ)?;
+                }
+                write!(f, ">")
+            },
+            TypeReference::SzArray(ref modifiers, ref inner) => {
+                write_list!(f, modifiers, " ");
+                write!(f, "{}[]", inner)
+            }
+            TypeReference::FnPtr(ref sig) => write!(f, "*({})", sig),
+        }
     }
 }
 

@@ -1,3 +1,16 @@
+macro_rules! write_list {
+    ($target:expr, $vals:expr, $separator: expr) => {
+        let mut any = false;
+        for val in $vals {
+            any = true;
+            write!($target, "{}", val)?;
+        }
+        if any {
+            write!($target, $separator)?;
+        }
+    };
+}
+
 mod custom_modifier;
 mod method_signature;
 mod param;

@@ -54,6 +54,14 @@ impl SignatureHeader {
         self.attributes().contains(SignatureAttributes::GENERIC)
     }
 
+    pub fn has_this(self) -> bool {
+        self.attributes().contains(SignatureAttributes::HAS_THIS)
+    }
+
+    pub fn explicit_this(self) -> bool {
+        self.attributes().contains(SignatureAttributes::EXPLICIT_THIS)
+    }
+
     pub fn kind(self) -> SignatureKind {
         let calling_convention_or_kind = self.0 & CONV_OR_KIND_MASK;
 

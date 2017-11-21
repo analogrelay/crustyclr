@@ -1,8 +1,9 @@
+use std::fmt;
 use std::io::Read;
 
 use byteorder::ReadBytesExt;
 
-use cli::signatures::{Param, RetType, SignatureHeader, TypeReference};
+use cli::signatures::{Param, RetType, SignatureCallingConvention, SignatureHeader, TypeReference};
 use cli::signatures::utils;
 
 use error::Error;
@@ -62,6 +63,33 @@ impl MethodSignature {
             generic_param_count,
             parameters,
         ))
+    }
+}
+
+impl fmt::Display for MethodSignature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match self.header.calling_convention() {
+            SignatureCallingConvention::CDecl => write!(f, "cdecl ")?,
+            SignatureCallingConvention::StdCall => write!(f, "stdcall ")?,
+            SignatureCallingConvention::ThisCall => write!(f, "thiscall ")?,
+            SignatureCallingConvention::FastCall => write!(f, "fastcall ")?,
+            SignatureCallingConvention::VarArgs => write!(f, "varargs ")?,
+            _ => {}
+        }
+        if self.header.is_generic() {
+            write!(f, ".generic ")?;
+        }
+        if !self.header.has_this() {
+            write!(f, "static ")?;
+        }
+        if !self.header.explicit_this() {
+            write!(f, ".explicitthis ")?;
+        }
+        write!(f, "{} .method(", self.return_type)?;
+        for param in self.parameters.iter() {
+            write!(f, "{} ", param);
+        }
+        write!(f, ")")
     }
 }
 

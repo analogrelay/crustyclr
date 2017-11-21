@@ -1,3 +1,5 @@
+use std::fmt;
+
 use cli::tables::TableHandle;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -12,5 +14,16 @@ impl CustomModifier {
             required,
             modifier_type,
         }
+    }
+}
+
+impl fmt::Display for CustomModifier {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        if self.required {
+            write!(f, "modreq(")?;
+        } else {
+            write!(f, "modopt(")?;
+        }
+        write!(f, "{})", self.modifier_type)
     }
 }

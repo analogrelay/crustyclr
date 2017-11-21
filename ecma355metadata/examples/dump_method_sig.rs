@@ -8,6 +8,7 @@ use std::io::Cursor;
 use ecma355metadata::{MetadataReader, PeImage};
 use ecma355metadata::cli::{Access, CliHeader, MethodFlags, MethodVTableLayout};
 use ecma355metadata::cli::tables::MethodDef;
+use ecma355metadata::cli::signatures::MethodSignature;
 use ecma355metadata::pe::DirectoryType;
 
 fn load_cli_header(pe: &PeImage) -> CliHeader {
@@ -41,6 +42,7 @@ pub fn main() {
             .iter()
             .map(|o| o.unwrap())
             .collect();
+
         let params: Vec<_> = assembly
             .tables()
             .param()
@@ -50,12 +52,19 @@ pub fn main() {
 
         for idx in 0..methods.len() {
             let method = &methods[idx];
+
+            // Load the method signature blob
+            let mut sig_blob = Cursor::new(assembly.get_blob(method.signature).unwrap());
+            let signature = MethodSignature::read(&mut sig_blob).unwrap();
+
             print!(" [0x{:08X}] ", method.rva);
 
             write_flags(method);
 
             let name =
                 str::from_utf8(assembly.get_string(method.name).unwrap_or(b"<null>")).unwrap();
+
+            print!("{} ", signature.return_type);
 
             print!("{}(", name);
 
@@ -68,7 +77,8 @@ pub fn main() {
 
             // Iterate over the params
             let mut first = true;
-            for param in params[method.params.index()..end].iter() {
+            for (idx, param) in params[method.params.index()..end].iter().enumerate() {
+                let param_sig = &signature.parameters[idx];
                 if first {
                     first = false;
                 } else {
@@ -76,7 +86,7 @@ pub fn main() {
                 }
                 let name =
                     str::from_utf8(assembly.get_string(param.name).unwrap_or(b"<null>")).unwrap();
-                print!("{}", name);
+                print!("{} {}", param_sig, name);
             }
             println!(")")
         }
