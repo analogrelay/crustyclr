@@ -1,7 +1,7 @@
 use std::io::Read;
 
 use cli::tables::TableHandle;
-use cli::signatures::CustomModifier;
+use cli::signatures::{CustomModifier, MethodSignature};
 use cli::signatures::utils;
 
 use error::Error;
@@ -40,18 +40,6 @@ impl ArrayShape {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum GenericInstType {
-    Class,
-    ValueType,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum FnPtrSig {
-    MethodDef,
-    MethodRef
-}
-
-#[derive(Debug, PartialEq, Eq)]
 pub enum TypeReference {
     End,
     Void,
@@ -74,14 +62,15 @@ pub enum TypeReference {
     Class(TableHandle),
     Var(u32),
     Array(Box<TypeReference>, ArrayShape),
-    GenericInst(GenericInstType, TableHandle, Vec<TypeReference>),
+    GenericInst(Box<TypeReference>, Vec<TypeReference>),
     TypedByRef,
     I,
     U,
-    FnPtr(FnPtrSig),
+    FnPtr(Box<MethodSignature>),
     Object,
     SzArray(Vec<CustomModifier>, Box<TypeReference>),
     MVar(u32),
+    Sentinel,
 }
 
 impl TypeReference {
@@ -95,6 +84,7 @@ mod tests {
     use super::*;
 
     use cli::tables::{TableIndex, TableHandle};
+    use cli::signatures::{RetType,Param,MethodSignature,SignatureHeader};
 
     macro_rules! type_parse_tests {
         ($($name:ident($data:expr, $expected:expr);)*) => {
@@ -142,13 +132,11 @@ mod tests {
         valuetype([0x11, 0x42], TypeReference::ValueType(TableHandle::new(0x10, TableIndex::TypeSpec)));
         class([0x12, 0x42], TypeReference::Class(TableHandle::new(0x10, TableIndex::TypeSpec)));
         generic_inst_class([0x15, 0x12, 0x42, 0x02, 0x04, 0x05], TypeReference::GenericInst(
-            GenericInstType::Class,
-            TableHandle::new(0x10, TableIndex::TypeSpec),
+            Box::new(TypeReference::Class(TableHandle::new(0x10, TableIndex::TypeSpec))),
             vec![TypeReference::I1, TypeReference::U1]
         ));
         generic_inst_value_type([0x15, 0x11, 0x42, 0x02, 0x04, 0x05], TypeReference::GenericInst(
-            GenericInstType::ValueType,
-            TableHandle::new(0x10, TableIndex::TypeSpec),
+            Box::new(TypeReference::ValueType(TableHandle::new(0x10, TableIndex::TypeSpec))),
             vec![TypeReference::I1, TypeReference::U1]
         ));
         var([0x13, 0x42], TypeReference::Var(0x42));
@@ -173,5 +161,27 @@ mod tests {
             ],
             Box::new(TypeReference::String)
         ));
+        sentinel([0x41], TypeReference::Sentinel);
+        fnptr_simple([0x1B, 0x20, 0x02, 0x0E, 0x08, 0x0E], TypeReference::FnPtr(Box::new(MethodSignature::new(
+            SignatureHeader::new(0x20),
+            RetType::new(vec![], TypeReference::String),
+            2,
+            0,
+            vec![
+                Param::new(vec![], TypeReference::I4),
+                Param::new(vec![], TypeReference::String),
+            ]
+        ))));
+        fnptr_varargs([0x1B, 0x25, 0x03, 0x0E, 0x08, 0x0E, 0x41, 0x0C], TypeReference::FnPtr(Box::new(MethodSignature::new(
+            SignatureHeader::new(0x25),
+            RetType::new(vec![], TypeReference::String),
+            2,
+            0,
+            vec![
+                Param::new(vec![], TypeReference::I4),
+                Param::new(vec![], TypeReference::String),
+                Param::new(vec![], TypeReference::R4),
+            ]
+        ))));
     }
 }

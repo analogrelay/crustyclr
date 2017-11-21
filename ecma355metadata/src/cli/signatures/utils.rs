@@ -2,7 +2,7 @@ use std::mem;
 use std::io::Read;
 
 use cli::tables::{TableHandle, TableIndex};
-use cli::signatures::{ArrayShape, CustomModifier, TypeReference, GenericInstType};
+use cli::signatures::{ArrayShape, CustomModifier, TypeReference, MethodSignature};
 
 use error::Error;
 
@@ -64,23 +64,18 @@ pub fn read_type<R: Read>(discriminator: u32, reader: &mut R) -> Result<TypeRefe
         },
         0x15 => {
             // GenericInst
-            let inst_type = match read_compressed_u32(reader)? {
-                0x11 => GenericInstType::ValueType,
-                0x12 => GenericInstType::Class,
-                _ => return Err(Error::InvalidMetadata("Invalid value following ELEMENT_TYPE_GENERIC_INST token."))
-            };
-            let typ = read_type_def_or_ref_spec_encoded(reader)?;
+            let inst_type = TypeReference::read(reader)?;
             let arg_count = read_compressed_u32(reader)?;
             let mut args = Vec::with_capacity(arg_count as usize);
             for _ in 0..arg_count {
                 args.push(TypeReference::read(reader)?);
             }
-            Ok(TypeReference::GenericInst(inst_type, typ, args))
+            Ok(TypeReference::GenericInst(Box::new(inst_type), args))
         },
         0x16 => Ok(TypeReference::TypedByRef),
         0x18 => Ok(TypeReference::I),
         0x19 => Ok(TypeReference::U),
-        0x1B => unimplemented!(), // FnPtr
+        0x1B => Ok(TypeReference::FnPtr(Box::new(MethodSignature::read(reader)?))),
         0x1C => Ok(TypeReference::Object),
         0x1D => {
             // SzArray
@@ -88,6 +83,7 @@ pub fn read_type<R: Read>(discriminator: u32, reader: &mut R) -> Result<TypeRefe
             Ok(TypeReference::SzArray(mods, Box::new(typ)))
         }
         0x1E => Ok(TypeReference::MVar(read_compressed_u32(reader)?)),
+        0x41 => Ok(TypeReference::Sentinel),
         x => Err(Error::UnknownTypeCode(x)),
     }
 }

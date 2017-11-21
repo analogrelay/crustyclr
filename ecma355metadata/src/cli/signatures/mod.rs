@@ -1,14 +1,16 @@
 mod custom_modifier;
-mod method_def_sig;
+mod method_signature;
 mod param;
 mod ret_type;
 mod signature_header;
 mod type_reference;
-mod utils;
+
+pub mod utils;
 
 pub use self::custom_modifier::CustomModifier;
-pub use self::method_def_sig::MethodDefSig;
+pub use self::method_signature::MethodSignature;
 pub use self::param::Param;
 pub use self::ret_type::RetType;
-pub use self::signature_header::SignatureHeader;
-pub use self::type_reference::{ArrayShape, TypeReference, GenericInstType, FnPtrSig};
+pub use self::signature_header::{SignatureAttributes, SignatureCallingConvention, SignatureHeader,
+                                 SignatureKind};
+pub use self::type_reference::{ArrayShape, TypeReference};

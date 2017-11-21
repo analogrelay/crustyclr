@@ -5,6 +5,7 @@ use cli::signatures::utils;
 
 use error::Error;
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct RetType {
     pub modifiers: Vec<CustomModifier>,
     pub type_reference: TypeReference,

@@ -39,7 +39,7 @@ bitflags! {
 // The header value indicates the calling convention, if the signature refers to a method,
 // using values 0x0-0x5, OR the type of the signature if it isn't a method (values 0x6-0xA)
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SignatureHeader(u8);
 
 impl SignatureHeader {
@@ -48,6 +48,10 @@ impl SignatureHeader {
         assert!((value & CONV_OR_KIND_MASK) != 0x09, "Signature Header contains invalid value");
 
         SignatureHeader(value)
+    }
+
+    pub fn is_generic(self) -> bool {
+        self.attributes().contains(SignatureAttributes::GENERIC)
     }
 
     pub fn kind(self) -> SignatureKind {
