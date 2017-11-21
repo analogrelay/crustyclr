@@ -73,13 +73,14 @@ fn read_compressed_u32_helper<R: Read>(reader: &mut R) -> Result<(u32, usize), E
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Cursor;
 
     macro_rules! read_compressed_u32_tests {
         ($($name: ident($encoded: expr, $val: expr);)*) => {
             $(
                 #[test]
                 pub fn $name() {
-                    let mut buf = ::std::io::Cursor::new($encoded);
+                    let mut buf = Cursor::new($encoded);
                     assert_eq!($val, read_compressed_u32(&mut buf).unwrap());
                 }
             )*
@@ -91,7 +92,7 @@ mod tests {
             $(
                 #[test]
                 pub fn $name() {
-                    let mut buf = ::std::io::Cursor::new($encoded);
+                    let mut buf = Cursor::new($encoded);
                     assert_eq!($val, read_compressed_i32(&mut buf).unwrap());
                 }
             )*
@@ -121,7 +122,13 @@ mod tests {
 
     #[test]
     pub fn type_def_or_ref_spec_encoded() {
-        let mut buf = ::std::io::Cursor::new([0x49u8]);
+        let mut buf = Cursor::new([0x49]);
         assert_eq!(TableHandle::new(0x12, TableIndex::TypeRef), read_type_def_or_ref_spec_encoded(&mut buf).unwrap());
+    }
+
+    #[test]
+    pub fn type_def_or_ref_spec_encoded_large() {
+        let mut buf = Cursor::new([0xC0, 0x48, 0xD1, 0x5A]);
+        assert_eq!(TableHandle::new(0x123456, TableIndex::TypeSpec), read_type_def_or_ref_spec_encoded(&mut buf).unwrap());
     }
 }
