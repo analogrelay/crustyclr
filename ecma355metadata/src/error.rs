@@ -38,7 +38,7 @@ pub enum Error {
     InvalidCodedIndex,
 
     /// The type code is not recognized
-    UnknownTypeCode,
+    UnknownTypeCode(u32),
 }
 
 impl From<::std::io::Error> for Error {
