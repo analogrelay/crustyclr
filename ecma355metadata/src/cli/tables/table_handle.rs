@@ -7,6 +7,7 @@ use cli::{LARGE_INDEX_SIZE, SMALL_INDEX_SIZE};
 use cli::tables::{TableIndex, TableMask};
 use error::Error;
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct TableHandle {
     index: usize,
     table: TableIndex,

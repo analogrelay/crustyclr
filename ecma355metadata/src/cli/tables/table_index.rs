@@ -6,7 +6,7 @@ use std::str::FromStr;
 use error::Error;
 
 #[repr(u8)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TableIndex {
     Module = 0x00,
     TypeRef = 0x01,

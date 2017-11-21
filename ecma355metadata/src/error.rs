@@ -36,6 +36,9 @@ pub enum Error {
 
     /// The Coded Index data was invalid
     InvalidCodedIndex,
+
+    /// The type code is not recognized
+    UnknownTypeCode,
 }
 
 impl From<::std::io::Error> for Error {
