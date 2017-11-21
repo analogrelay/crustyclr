@@ -1,6 +1,7 @@
 use std::io::Cursor;
 
-use cli::{GuidHandle, GuidHeap, MetadataHeader, StreamHeader, StringHandle, StringHeap};
+use cli::{BlobHandle, BlobHeap, GuidHandle, GuidHeap, MetadataHeader, StreamHeader, StringHandle,
+          StringHeap};
 use cli::tables::TableStream;
 use error::Error;
 use Guid;
@@ -9,6 +10,7 @@ pub struct MetadataReader<'a> {
     metadata_header: MetadataHeader,
     string_heap: StringHeap<'a>,
     guid_heap: GuidHeap<'a>,
+    blob_heap: BlobHeap<'a>,
     tables: TableStream<'a>,
 }
 
@@ -22,6 +24,7 @@ impl<'a> MetadataReader<'a> {
         let mut table_stream = None;
         let mut string_heap = StringHeap::EMPTY;
         let mut guid_heap = GuidHeap::EMPTY;
+        let mut blob_heap = BlobHeap::EMPTY;
         for _ in 0..metadata_header.streams {
             let header = StreamHeader::read(&mut cursor)?;
             let start = header.offset as usize;
@@ -30,14 +33,16 @@ impl<'a> MetadataReader<'a> {
                 "#~" => table_stream = Some(TableStream::new(&data[start..end])?),
                 "#Strings" => string_heap = StringHeap::new(&data[start..end]),
                 "#GUID" => guid_heap = GuidHeap::new(&data[start..end])?,
+                "#Blob" => blob_heap = BlobHeap::new(&data[start..end]),
                 _ => {}
             };
         }
 
         Ok(MetadataReader {
-            metadata_header: metadata_header,
-            string_heap: string_heap,
-            guid_heap: guid_heap,
+            metadata_header,
+            string_heap,
+            guid_heap,
+            blob_heap,
             tables: table_stream.ok_or(Error::InvalidMetadata("No table stream was present"))?,
         })
     }
@@ -56,5 +61,9 @@ impl<'a> MetadataReader<'a> {
 
     pub fn get_guid(&self, handle: GuidHandle) -> Option<&Guid> {
         self.guid_heap.get(handle.index())
+    }
+
+    pub fn get_blob(&self, handle: BlobHandle) -> Option<&[u8]> {
+        self.blob_heap.get(handle.index())
     }
 }
