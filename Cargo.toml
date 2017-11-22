@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["Andrew Stanton-Nurse <andrew@andrewnurse.net>"]
 
 [dependencies]
+ecma355metadata = { path = "./ecma355metadata" }

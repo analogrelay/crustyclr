@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworkIdentifier>CrustyCLR</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>0.1</TargetFrameworkVersion>
+    <TargetFrameworkRootPath>$(MSBuildThisFileDirectory)/../referenceAssemblies</TargetFrameworkRootPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NoStdLib>true</NoStdLib>
+    <RootNamespace></RootNamespace>
+    <RuntimeMetadataVersion>v4.0.30319</RuntimeMetadataVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

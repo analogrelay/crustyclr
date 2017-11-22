@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>CrustyCLR, Version=v0.1</TargetFramework>
+    <TargetFrameworkIdentifier>CrustyCLR</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>0.1</TargetFrameworkVersion>
+    <TargetFrameworkRootPath>$(MSBuildThisFileDirectory)/../../fx/referenceAssemblies</TargetFrameworkRootPath>
+    <NoStdLib>true</NoStdLib>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <OutputType>Exe</OutputType>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../fx/corlib/corlib.csproj" SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+
+</Project>
+
