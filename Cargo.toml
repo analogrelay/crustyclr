@@ -5,3 +5,7 @@ authors = ["Andrew Stanton-Nurse <andrew@andrewnurse.net>"]
 
 [dependencies]
 ecma355metadata = { path = "./ecma355metadata" }
+slog = "2.0.12"
+
+[dev-dependencies]
+sloggers = "0.2.2"
