@@ -1,10 +1,9 @@
-use std::io::Read;
 use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use cli::{MetadataSizes, ParamAttributes, StringHandle, StringHandleReader};
-use cli::tables::{Table, TableDecoder, TableIndex};
+use cli::tables::{TableDecoder, TableIndex};
 
 use error::Error;
 
@@ -14,22 +13,18 @@ pub struct Param {
     pub name: StringHandle,
 }
 
-impl Table for Param {
-    type Decoder = ParamDecoder;
-    const INDEX: TableIndex = TableIndex::Param;
-}
-
 pub struct ParamDecoder {
     count: usize,
     string_reader: StringHandleReader,
 }
 
-impl<R: Read> TableDecoder<R> for ParamDecoder {
+impl TableDecoder for ParamDecoder {
     type Item = Param;
+    const INDEX: TableIndex = TableIndex::Param;
 
     fn new(sizes: &MetadataSizes) -> ParamDecoder {
         ParamDecoder {
-            count: sizes.row_count(Self::Item::INDEX),
+            count: sizes.row_count(Self::INDEX),
             string_reader: StringHandleReader::new(sizes),
         }
     }
@@ -42,11 +37,11 @@ impl<R: Read> TableDecoder<R> for ParamDecoder {
         self.count
     }
 
-    fn decode(&self, buf: &mut R) -> Result<Param, Error> {
+    fn decode(&self, mut buf: &[u8]) -> Result<Param, Error> {
         Ok(Param {
             flags: ParamAttributes::from_bits_truncate(buf.read_u16::<LittleEndian>()?),
             sequence: buf.read_u16::<LittleEndian>()?,
-            name: self.string_reader.read(buf)?,
+            name: self.string_reader.read(&mut buf)?,
         })
     }
 }

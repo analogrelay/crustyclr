@@ -1,11 +1,10 @@
-use std::io::Read;
-
 use cli::MetadataSizes;
 use cli::tables::TableIndex;
 use error::Error;
 
-pub trait TableDecoder<R: Read> {
+pub trait TableDecoder {
     type Item;
+    const INDEX: TableIndex;
 
     /// Creates a new TableReader using the provided sizes.
     fn new(sizes: &MetadataSizes) -> Self;
@@ -17,5 +16,5 @@ pub trait TableDecoder<R: Read> {
     fn row_count(&self) -> usize;
 
     /// Reads an item from the provided buffer. The buffer is guaranteed to be exactly `self.row_size()` bytes in length.
-    fn decode(&self, buf: &mut R) -> Result<Self::Item, Error>;
+    fn decode(&self, buf: &[u8]) -> Result<Self::Item, Error>;
 }

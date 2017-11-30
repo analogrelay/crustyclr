@@ -1,11 +1,10 @@
-use std::io::Read;
 use std::mem::size_of;
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use cli::{BlobHandle, BlobHandleReader, MetadataSizes, MethodAttributes, MethodImplAttributes,
           StringHandle, StringHandleReader};
-use cli::tables::{Table, TableDecoder, TableHandle, TableHandleReader, TableIndex};
+use cli::tables::{TableDecoder, TableHandle, TableHandleReader, TableIndex};
 
 use error::Error;
 
@@ -18,11 +17,6 @@ pub struct MethodDef {
     pub params: TableHandle,
 }
 
-impl Table for MethodDef {
-    type Decoder = MethodDefDecoder;
-    const INDEX: TableIndex = TableIndex::MethodDef;
-}
-
 pub struct MethodDefDecoder {
     count: usize,
     string_reader: StringHandleReader,
@@ -30,12 +24,13 @@ pub struct MethodDefDecoder {
     params_reader: TableHandleReader,
 }
 
-impl<R: Read> TableDecoder<R> for MethodDefDecoder {
+impl TableDecoder for MethodDefDecoder {
     type Item = MethodDef;
+    const INDEX: TableIndex = TableIndex::MethodDef;
 
     fn new(sizes: &MetadataSizes) -> MethodDefDecoder {
         MethodDefDecoder {
-            count: sizes.row_count(Self::Item::INDEX),
+            count: sizes.row_count(Self::INDEX),
             string_reader: StringHandleReader::new(sizes),
             blob_reader: BlobHandleReader::new(sizes),
             params_reader: index_reader!(sizes, TableIndex::Param),
@@ -51,14 +46,14 @@ impl<R: Read> TableDecoder<R> for MethodDefDecoder {
         self.count
     }
 
-    fn decode(&self, buf: &mut R) -> Result<MethodDef, Error> {
+    fn decode(&self, mut buf: &[u8]) -> Result<MethodDef, Error> {
         Ok(MethodDef {
             rva: buf.read_u32::<LittleEndian>()?,
             impl_flags: MethodImplAttributes::new(buf.read_u16::<LittleEndian>()?),
             flags: MethodAttributes::new(buf.read_u16::<LittleEndian>()?),
-            name: self.string_reader.read(buf)?,
-            signature: self.blob_reader.read(buf)?,
-            params: self.params_reader.read(buf)?,
+            name: self.string_reader.read(&mut buf)?,
+            signature: self.blob_reader.read(&mut buf)?,
+            params: self.params_reader.read(&mut buf)?,
         })
     }
 }

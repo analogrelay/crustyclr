@@ -38,7 +38,6 @@ mod table_decoder;
 mod table_handle;
 mod table_index;
 // mod table_stream;
-mod table;
 
 pub use self::module::{Module, ModuleDecoder};
 pub use self::type_ref::{TypeRef, TypeRefDecoder};
@@ -50,4 +49,3 @@ pub use self::table_decoder::TableDecoder;
 pub use self::table_handle::{TableHandle, TableHandleReader};
 pub use self::table_index::{TableIndex, TableMask};
 // pub use self::table_stream::TableStream;
-pub use self::table::Table;

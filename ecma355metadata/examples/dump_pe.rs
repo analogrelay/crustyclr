@@ -11,7 +11,7 @@ pub fn main() {
         println!("Usage: dump_pe <file>");
     } else {
         let file = File::open(&args[1]).unwrap();
-        let image = MetadataImage::load(file).unwrap();
+        let image = MetadataImage::read(file).unwrap();
 
         println!("COFF Header:");
         println!("  Machine: 0x{:04X}", image.pe().coff_header().machine);
