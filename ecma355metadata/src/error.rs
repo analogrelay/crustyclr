@@ -41,6 +41,30 @@ pub enum Error {
     UnknownTypeCode(u32),
 }
 
+// Manual implementation because io::Error doesn't implement PartialEq, so we can't derive... but it's
+// OK with us if IoError != IoError because this is mostly for testing.
+// We don't implement Eq though, because Eq implies `l.eq(r)` will always be `true` for the same `l`, `r`
+// but that's not the case (IoError is like NaN)
+impl PartialEq for Error {
+    fn eq(&self, other: &Error) -> bool {
+        match (self, other) {
+            (&Error::InvalidSignature, &Error::InvalidSignature) => true,
+            (&Error::NotAPortableExecutable, &Error::NotAPortableExecutable) => true,
+            (&Error::DirectoryNotFound, &Error::DirectoryNotFound) => true,
+            (&Error::SectionNotFound, &Error::SectionNotFound) => true,
+            (&Error::CliHeaderNotFound, &Error::CliHeaderNotFound) => true,
+            (&Error::InvalidStringData, &Error::InvalidStringData) => true,
+            (&Error::StreamNotFound, &Error::StreamNotFound) => true,
+            (&Error::InvalidMetadata(lhs), &Error::InvalidMetadata(rhs)) => lhs.eq(rhs),
+            (&Error::InvalidHeapReference, &Error::InvalidHeapReference) => true,
+            (&Error::UnknownTableName, &Error::UnknownTableName) => true,
+            (&Error::InvalidCodedIndex, &Error::InvalidCodedIndex) => true,
+            (&Error::UnknownTypeCode(lhs), &Error::UnknownTypeCode(rhs)) => lhs == rhs,
+            _ => false, // Type mismatches and IoError are never equal
+        }
+    }
+}
+
 impl From<::std::io::Error> for Error {
     fn from(e: ::std::io::Error) -> Error {
         Error::IoError(e)

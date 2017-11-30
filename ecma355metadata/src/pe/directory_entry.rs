@@ -1,7 +1,7 @@
 use std::io::Read;
 
 use error::Error;
-use pe::SectionRange;
+use pe::MemoryRange;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum DirectoryType {
@@ -50,31 +50,27 @@ impl ::std::fmt::Display for DirectoryType {
 
 pub struct DirectoryEntry {
     pub directory_type: DirectoryType,
-    pub range: SectionRange,
+    pub range: MemoryRange,
 }
 
 impl DirectoryEntry {
-    pub fn new(directory_type: DirectoryType, range: SectionRange) -> DirectoryEntry {
+    pub fn new(directory_type: DirectoryType, range: MemoryRange) -> DirectoryEntry {
         DirectoryEntry {
             directory_type: directory_type,
             range: range,
         }
     }
 
-    pub fn read<A: Read>(directory_type: DirectoryType, buf: &mut A) -> Result<DirectoryEntry, Error> {
-        Ok(DirectoryEntry::new(
-            directory_type,
-            SectionRange::read(buf)?))
+    pub fn read<A: Read>(
+        directory_type: DirectoryType,
+        buf: &mut A,
+    ) -> Result<DirectoryEntry, Error> {
+        Ok(DirectoryEntry::new(directory_type, MemoryRange::read(buf)?))
     }
 }
 
 impl ::std::fmt::Display for DirectoryEntry {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
-        write!(
-            f,
-            "{}: {}",
-            self.range,
-            self.directory_type
-        )
+        write!(f, "{}: {}", self.range, self.directory_type)
     }
 }

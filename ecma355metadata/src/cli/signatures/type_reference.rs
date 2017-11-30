@@ -41,7 +41,7 @@ impl ArrayShape {
 }
 
 impl fmt::Display for ArrayShape {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, _f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         unimplemented!()
     }
 }

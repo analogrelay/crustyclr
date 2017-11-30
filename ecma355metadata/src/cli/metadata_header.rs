@@ -2,6 +2,8 @@ use std::io::{Read, Seek, SeekFrom};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
+use cli::StreamHeader;
+
 use error::Error;
 
 use utils;
@@ -11,7 +13,7 @@ pub struct MetadataHeader {
     pub minor_version: u16,
     pub version: String,
     pub flags: u16,
-    pub streams: u16,
+    pub streams: Vec<StreamHeader>,
 }
 
 const METADATA_SIGNATURE: u32 = 0x424A5342;
@@ -48,14 +50,27 @@ impl MetadataHeader {
                 }
             }
 
+            let flags = buf.read_u16::<LittleEndian>()?;
+            let stream_count = buf.read_u16::<LittleEndian>()?;
+
+            // Read stream headers
+            let mut streams = Vec::with_capacity(stream_count as usize);
+            for _ in 0..stream_count {
+                streams.push(StreamHeader::read(buf)?);
+            }
+
             // Read flags and streams values and return
             Ok(MetadataHeader {
-                major_version: major_version,
-                minor_version: minor_version,
-                version: version,
-                flags: buf.read_u16::<LittleEndian>()?,
-                streams: buf.read_u16::<LittleEndian>()?,
+                major_version,
+                minor_version,
+                version,
+                flags,
+                streams,
             })
         }
+    }
+
+    pub fn get_stream(&self, name: &str) -> Option<&StreamHeader> {
+        self.streams.iter().find(|x| x.name == name)
     }
 }

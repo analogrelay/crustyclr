@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use slog;
 
 use error::Error;
+use app_context::AppContext;
 
 pub struct RuntimeBuilder {
     base_directory: Option<PathBuf>,
@@ -21,13 +22,12 @@ impl RuntimeBuilder {
 
     /// Consumes the builder and creates an Runtime from the result.
     pub fn build(self) -> Runtime {
-        Runtime {
-            base_directory: self.base_directory.unwrap_or_else(|| {
+        Runtime::new(
+            self.base_directory.unwrap_or_else(|| {
                 env::current_dir().expect("Failed to get the current directory")
             }),
-            logger: self.logger
-                .unwrap_or_else(|| slog::Logger::root(slog::Discard, o!())),
-        }
+            self.logger
+                .unwrap_or_else(|| slog::Logger::root(slog::Discard, o!())))
     }
 
     /// Sets the base directory for the Runtime and returns the builder (for method chaining)
@@ -43,13 +43,28 @@ impl RuntimeBuilder {
 }
 
 pub struct Runtime {
-    base_directory: PathBuf,
+    app_context: AppContext,
     logger: slog::Logger,
 }
 
 impl Runtime {
-    pub fn execute(&self, assembly_name: &str) -> Result<i32, Error> {
+    fn new(base_directory: PathBuf, logger: slog::Logger) -> Runtime {
+        let base_dir_str = base_directory.clone().into_os_string().into_string().expect("Unable to convert path to string!");
+        Runtime {
+            app_context: AppContext::new(
+                base_directory,
+                logger.new(o!("base_directory" => base_dir_str)),
+            ),
+            logger: logger,
+        }
+    }
+
+    pub fn execute(&mut self, assembly_name: &str) -> Result<i32, Error> {
         debug!(self.logger, "executing assembly"; "assembly" => assembly_name);
+
+        // Load the assembly
+        let assembly = self.app_context.load(assembly_name)?;
+
         Ok(1)
     }
 }

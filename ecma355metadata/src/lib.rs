@@ -17,6 +17,7 @@ extern crate bitflags;
 mod error;
 mod utils;
 mod guid;
+mod metadata_image;
 
 /// Contains CLI metadata structures
 pub mod cli;
@@ -27,5 +28,6 @@ pub mod pe;
 pub use error::Error;
 
 pub use pe::PeImage;
-pub use cli::MetadataReader;
+pub use cli::CliHeader;
 pub use guid::Guid;
+pub use metadata_image::MetadataImage;

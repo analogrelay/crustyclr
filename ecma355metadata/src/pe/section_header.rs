@@ -50,4 +50,8 @@ impl SectionHeader {
     pub fn virtual_end(&self) -> u32 {
         self.virtual_address + self.virtual_size
     }
+
+    pub fn contains_rva(&self, rva: u32) -> bool {
+        rva >= self.virtual_address && rva < self.virtual_end()
+    }
 }

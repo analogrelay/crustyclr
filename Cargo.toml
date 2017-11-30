@@ -4,8 +4,9 @@ version = "0.1.0"
 authors = ["Andrew Stanton-Nurse <andrew@andrewnurse.net>"]
 
 [dependencies]
-ecma355metadata = { path = "./ecma355metadata" }
 slog = "2.0.12"
+memmap = "0.6.1"
+ecma355metadata = { path = "./ecma355metadata" }
 
 [dev-dependencies]
 sloggers = "0.2.2"

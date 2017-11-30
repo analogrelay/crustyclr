@@ -1,5 +1,7 @@
+use std::io::Read;
+
 use cli::{MetadataSizes, StringHandle, StringHandleReader};
-use cli::tables::{TableHandle, TableHandleReader, TableIndex, TableMask, TableReader};
+use cli::tables::{Table, TableDecoder, TableHandle, TableHandleReader, TableIndex, TableMask};
 use error::Error;
 
 pub struct TypeRef {
@@ -8,17 +10,23 @@ pub struct TypeRef {
     pub namespace: StringHandle,
 }
 
-pub struct TypeRefReader {
+impl Table for TypeRef {
+    type Decoder = TypeRefDecoder;
+    const INDEX: TableIndex = TableIndex::TypeRef;
+}
+
+pub struct TypeRefDecoder {
+    count: usize,
     resolution_scope_reader: TableHandleReader,
     string_reader: StringHandleReader,
 }
 
-impl TableReader for TypeRefReader {
+impl<R: Read> TableDecoder<R> for TypeRefDecoder {
     type Item = TypeRef;
-    const INDEX: TableIndex = TableIndex::TypeRef;
 
-    fn new(sizes: &MetadataSizes) -> TypeRefReader {
-        TypeRefReader {
+    fn new(sizes: &MetadataSizes) -> TypeRefDecoder {
+        TypeRefDecoder {
+            count: sizes.row_count(Self::Item::INDEX),
             resolution_scope_reader: index_reader!(sizes,
                 0 => TableIndex::Module,
                 1 => TableIndex::ModuleRef,
@@ -32,11 +40,15 @@ impl TableReader for TypeRefReader {
         self.resolution_scope_reader.size() + (2 * self.string_reader.size())
     }
 
-    fn read(&self, mut buf: &[u8]) -> Result<TypeRef, Error> {
+    fn row_count(&self) -> usize {
+        self.count
+    }
+
+    fn decode(&self, buf: &mut R) -> Result<TypeRef, Error> {
         Ok(TypeRef {
-            resolution_scope: self.resolution_scope_reader.read(&mut buf)?,
-            name: self.string_reader.read(&mut buf)?,
-            namespace: self.string_reader.read(&mut buf)?,
+            resolution_scope: self.resolution_scope_reader.read(buf)?,
+            name: self.string_reader.read(buf)?,
+            namespace: self.string_reader.read(buf)?,
         })
     }
 }

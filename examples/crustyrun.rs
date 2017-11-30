@@ -7,9 +7,9 @@ extern crate sloggers;
 use std::env;
 use std::path::Path;
 
-use sloggers::Build;
+use sloggers::{Build, set_stdlog_logger};
 use sloggers::terminal::{Destination, TerminalLoggerBuilder};
-use sloggers::types::Severity;
+use sloggers::types::{Format, Severity};
 
 use crustyclr::RuntimeBuilder;
 
@@ -35,18 +35,21 @@ fn do_main() -> i32 {
 
         // Set up logging
         let mut builder = TerminalLoggerBuilder::new();
+        builder.format(Format::Full);
         builder.level(Severity::Debug);
         builder.destination(Destination::Stderr);
 
         let logger = builder.build().unwrap();
 
-        // Create an App Context
-        let context = RuntimeBuilder::new()
+        set_stdlog_logger(logger.new(o!("stdlog" => true))).unwrap();
+
+        // Create a runtime
+        let mut rt = RuntimeBuilder::new()
             .base_directory(base_dir)
             .logger(logger)
             .build();
 
-        // Execute the assembly in the app context
-        context.execute(assembly).unwrap()
+        // Execute the assembly
+        rt.execute(assembly).unwrap()
     }
 }

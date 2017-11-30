@@ -87,7 +87,7 @@ impl fmt::Display for MethodSignature {
         }
         write!(f, "{} .method(", self.return_type)?;
         for param in self.parameters.iter() {
-            write!(f, "{} ", param);
+            write!(f, "{} ", param)?;
         }
         write!(f, ")")
     }

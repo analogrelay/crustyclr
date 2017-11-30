@@ -1,10 +1,15 @@
 extern crate ecma355metadata;
 
+extern crate memmap;
 #[macro_use]
 extern crate slog;
 
-mod error;
+mod app_context;
+mod assembly;
 mod runtime;
 
-pub use error::Error;
+pub mod error;
+
+pub use app_context::AppContext;
+pub use assembly::Assembly;
 pub use runtime::{Runtime, RuntimeBuilder};

@@ -3,33 +3,39 @@ extern crate ecma355metadata;
 use std::env;
 use std::fs::File;
 
-use ecma355metadata::pe::PeImage;
+use ecma355metadata::MetadataImage;
 
 pub fn main() {
     let args: Vec<_> = env::args().collect();
     if args.len() < 2 {
         println!("Usage: dump_pe <file>");
     } else {
-        let mut file = File::open(&args[1]).unwrap();
-        let pe = PeImage::read(&mut file).unwrap();
+        let file = File::open(&args[1]).unwrap();
+        let image = MetadataImage::load(file).unwrap();
 
         println!("COFF Header:");
-        println!("  Machine: 0x{:04X}", pe.coff_header().machine);
-        println!("  Number of Sections: {}", pe.coff_header().number_of_sections);
-        println!("  Timestamp: {}", pe.coff_header().timestamp);
+        println!("  Machine: 0x{:04X}", image.pe().coff_header().machine);
+        println!(
+            "  Number of Sections: {}",
+            image.pe().coff_header().number_of_sections
+        );
+        println!("  Timestamp: {}", image.pe().coff_header().timestamp);
         println!(
             "  Symbol Table Offset: 0x{:04X}",
-            pe.coff_header().symbol_table_addr
+            image.pe().coff_header().symbol_table_addr
         );
-        println!("  Symbol Count: {}", pe.coff_header().symbol_count);
+        println!("  Symbol Count: {}", image.pe().coff_header().symbol_count);
         println!(
             "  Optional Header Size: {}",
-            pe.coff_header().optional_header_size
+            image.pe().coff_header().optional_header_size
         );
-        println!("  Characteristics: {}", pe.coff_header().characteristics);
+        println!(
+            "  Characteristics: {}",
+            image.pe().coff_header().characteristics
+        );
         println!();
 
-        if let Some(pe_header) = pe.pe_header() {
+        if let Some(pe_header) = image.pe().pe_header() {
             println!("PE Header:");
             println!("  Magic: {}", pe_header.magic);
             println!(
@@ -95,32 +101,32 @@ pub fn main() {
         }
 
         println!("Sections:");
-        for section in pe.sections() {
-            println!("  {}", section.header().name);
-            println!("    Virtual Size: 0x{:08X}", section.header().virtual_size);
-            println!("    Virtual Address: 0x{:08X}", section.header().virtual_address);
-            println!("    Size of Raw Data: 0x{:08X}", section.header().size_of_raw_data);
+        for section in image.pe().sections() {
+            println!("  {}", section.name);
+            println!("    Virtual Size: 0x{:08X}", section.virtual_size);
+            println!("    Virtual Address: 0x{:08X}", section.virtual_address);
+            println!("    Size of Raw Data: 0x{:08X}", section.size_of_raw_data);
             println!(
                 "    Pointer to Raw Data: 0x{:08X}",
-                section.header().pointer_to_raw_data
+                section.pointer_to_raw_data
             );
             println!(
                 "    Pointer to Relocations: 0x{:08X}",
-                section.header().pointer_to_relocations
+                section.pointer_to_relocations
             );
             println!(
                 "    Pointer to Line Numbers: 0x{:08X}",
-                section.header().pointer_to_linenumbers
+                section.pointer_to_linenumbers
             );
             println!(
                 "    Number of Relocations: {}",
-                section.header().number_of_relocations
+                section.number_of_relocations
             );
             println!(
                 "    Number of Line Numbers: {}",
-                section.header().number_of_linenumbers
+                section.number_of_linenumbers
             );
-            println!("    Characteristics: {}", section.header().characteristics);
+            println!("    Characteristics: {}", section.characteristics);
         }
     }
 }
